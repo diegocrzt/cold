@@ -10,6 +10,7 @@
 #include <syslog.h>
 #include <signal.h>
 #include <pthread.h> 
+#include <configparser.h>
 
 
 /*
