@@ -8,6 +8,15 @@ int main(int argc, char * argvp[])
 	int puerto;
 	int threads;
 	int timeout;
+	char * logpath;
+	char * logfile;
+	struct sockaddr_in sin;
+	struct sockaddr_in pin;
+	int sock_descriptor;
+	int temp_sock_descriptor;
+	int address_size;
+	char buf[16384];
+	int i, len;
 	
 	if(argc != 2)
 	{
@@ -73,6 +82,27 @@ int main(int argc, char * argvp[])
 	close(STDERR_FILENO);
 
 	// Implementar Sockets
+
+	sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+	if( sock_descriptor == -1)
+	{
+		// log erros
+		exit(SOCK_DESCRIPTOR_ERROR);
+	}
+
+	bzero(&sin, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_port = htons(puerto);
+
+	if( bind(sock_descriptor, (struct sockaddr *)&sin, sizeof(sin)) == -1 )
+	{
+		// log errors
+		exit(BINDING_ERROR);
+	}
+	/*
+		IMPLEMENTACIÓN INCOMPLETA
+	*/
 
 	// Implementar Hilos
 
