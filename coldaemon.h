@@ -10,10 +10,11 @@
 #include <syslog.h>
 #include <signal.h>
 #include <pthread.h> 
-#include <configparser.h>
-
-
-//BLABLABLABLABLABLABLABLA
+#include "configparser.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netbd.h>
 
 /*
 
@@ -36,7 +37,8 @@
 #define ARGUMENTOS_INVALIDOS 1
 #define NO_CONFIG_FILE 2
 #define INVALID_CONFIG_fILE 3
- 
+#define SOCK_DESCRIPTOR_ERROR 4
+#define BINDING_ERROR 5 
 
 /*
 	acl_file es un puntero al nombre del fichero que tiene los datos de autenticación
