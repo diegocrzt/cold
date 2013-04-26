@@ -12,8 +12,6 @@
 #include <pthread.h> 
 
 
-//BLABLABLABLABLABLABLABLA
-
 /*
 
 	Todas las variables en minúsculas, se usa guion bajo si es necesario
