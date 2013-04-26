@@ -10,8 +10,9 @@
 #include <syslog.h>
 #include <signal.h>
 #include <pthread.h> 
-// Codigo del infierno
 
+
+//BLABLABLABLABLABLABLABLA
 
 /*
 
