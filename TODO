@@ -4,6 +4,7 @@ a recibir el mensaje de fin de conexión
 - Desconexión por TimeOut
 - Verificar que los hilos estén disponibles u ocupados adecuadamente (vector ready)
 - Hash dependiente de la longitud de la palabra
+- Autenticación, falla. no vuelve al comienzo del fichero
 
 Implementar
 - COMENTARIOS(Nico como voluntario)
@@ -11,3 +12,6 @@ Implementar
 - Señales
 - parser
 - BD
+- IPC
+- integración con servicios del sistema
+

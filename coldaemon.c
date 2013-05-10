@@ -26,6 +26,7 @@ int main(int argc, char * argv[])
 	thread_arg  * argumento;
 	int create_thread_value;
 	char flag_asignado_hilo;
+	FILE * acl_file;
 
 	if(argc != 2)
 	{
@@ -68,6 +69,12 @@ int main(int argc, char * argv[])
 		syslog(LOG_ERR,"No se puede crear la sesión\n");
 		return SESSION_ERROR;
 	}
+	
+	if( ( acl_file = fopen("cold.users.acl", "r") ) == NULL )
+	{
+		syslog(LOG_ERR,"No existe el archivo cold.users.acl\n");
+		return -1;// CODIGO DE ERROR, DEFINIR
+	}
 
 	if( (chdir("/")) < 0)
 	{
@@ -80,7 +87,7 @@ int main(int argc, char * argv[])
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
-	
+
 	openlog("cold", LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO,"Cobros On Line\n");
 
@@ -165,6 +172,7 @@ int main(int argc, char * argv[])
 				argumento[i].socket_descriptor = temp_sock_descriptor;	
 				argumento[i].socket = pin;
 				argumento[i].log_fd = log_fd;
+				argumento[i].acl_file = acl_file;
 				create_thread_value = pthread_create(&hilo[i],NULL, coredaemon, (void *) &argumento[i]); 
 				syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
 				syslog(LOG_DEBUG,"Usando Hilo %d\n",i);

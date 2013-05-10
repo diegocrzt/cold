@@ -39,6 +39,7 @@ typedef struct
 	int socket_descriptor;
 	struct sockaddr_in socket;
 	int log_fd;
+	FILE * acl_file;
 } thread_arg;
 
 char * ready;
@@ -66,7 +67,7 @@ char * ready;
 	la función retorna 0 si la autenticación es exitosa y se debe definir códigos 
 	de error para cada caso de error
 */
-char authentication(char * acl_file, char * usuario, char * clave);
+//char authentication(char * acl_file, char * usuario, char * clave);
 
 
 /*
