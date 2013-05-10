@@ -9,7 +9,7 @@ int main ()
     unsigned long hash_pass_buscado;  
     FILE * acl;
  
-/*    activar si queremos guardar mas usuarios
+    //activar si queremos guardar mas usuarios
 //para escribir en el archivo acl ..hice para guardar en el archivo las contrasenhas 
     acl=fopen("cold.users.acl.txt", "at");//abre el archivo para agregar/escribir lineas al archivo
     printf("Usuario: ");
@@ -21,7 +21,7 @@ int main ()
    fprintf(acl,"%s::%ld \n", user, hash_pass);//imprime en el archivo acl el usuario::contrasenha hash
 // fin de escribir en el archivo acl  
    fclose(acl);//cierra el archivo de escritura acl
-*/
+
 
 
 //Aca empieza de verdad :O

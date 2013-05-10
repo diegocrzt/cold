@@ -1,0 +1,13 @@
+Depurar
+- Cuando se mata al demonio, la conexión queda establecida por un tiempo esperando 
+a recibir el mensaje de fin de conexión
+- Desconexión por TimeOut
+- Verificar que los hilos estén disponibles u ocupados adecuadamente (vector ready)
+- Hash dependiente de la longitud de la palabra
+
+Implementar
+- COMENTARIOS(Nico como voluntario)
+- Implementar Semaforos(Nico como voluntario)
+- Señales
+- parser
+- BD
