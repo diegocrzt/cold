@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include "coldaemon.h"
 
-void config_parser(char * config_file, int * puerto, int * threads, int *timeout, char ** logpath, char ** logfile)
+int config_parser(char * config_file, int * puerto, int * threads, int *timeout, char ** logpath, char ** logfile)
 {
 	char *tokenPtr; //puntero para los tokens
 	char string[100]; //string donde se almacenan las lineas de configuracion
@@ -10,7 +8,7 @@ void config_parser(char * config_file, int * puerto, int * threads, int *timeout
 	FILE *ficheroPtr;
 
 	if(( ficheroPtr = fopen( config_file, "r")) == NULL)
-		printf("no se pudo abrir el archivo");
+		return INVALID_CONFIG_FILE;
 	/* Comparacion de string con cada argumento de configuracion */
 	for(i=0; i<=4;i++)
 	{
@@ -49,4 +47,5 @@ void config_parser(char * config_file, int * puerto, int * threads, int *timeout
 		}
 	}
 	fclose(ficheroPtr);
+	return OK;
 }

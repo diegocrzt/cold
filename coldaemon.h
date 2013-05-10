@@ -10,11 +10,12 @@
 #include <syslog.h>
 #include <signal.h>
 #include <pthread.h> 
-#include "configparser.h"
+#include "config_parser.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netbd.h>
+#include <string.h>
+//#include <netbd.h>
 
 /*
 
@@ -34,11 +35,18 @@
 // Biblioteca de Funciones de:
 // Hash, postgres, semaforos
 
+#define OK 0
 #define ARGUMENTOS_INVALIDOS 1
 #define NO_CONFIG_FILE 2
-#define INVALID_CONFIG_fILE 3
+#define INVALID_CONFIG_FILE 3
 #define SOCK_DESCRIPTOR_ERROR 4
 #define BINDING_ERROR 5 
+#define LISTENNING_ERROR 6
+#define ACCEPT_CONNECTION_ERROR 7
+#define CANT_FORK 8
+#define SESSION_ERROR 9
+#define CHDIR_ERROR 10
+#define LOG_ERROR 11
 
 /*
 	acl_file es un puntero al nombre del fichero que tiene los datos de autenticación
@@ -56,5 +64,6 @@ char authentication(char * acl_file, char * usuario, char * clave);
 	config_file, puntero al nombre del archivo de configuración
 	puerto, threads, timeout, logpath, logfile, parámetros del demonio.
 */
-char config_parser(char * config_file, int * puerto, char * threads, char * timeout, char * logpath, char * logfile); 
+int config_parser (char * config_file, int * puerto, int * threads, int * timeout, char ** logpath, char ** logfile);
+
 
