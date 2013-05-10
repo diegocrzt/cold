@@ -21,7 +21,7 @@ int main(int argc, char * argv[])
 	int address_size;
 	char buf[16384];
 	char printBuffer[512];
-	int i, len, log_fd, ret;
+	int i, len, log_fd, ret, j;
 	pthread_t * hilo;
 	thread_arg  * argumento;
 	int create_thread_value;
@@ -170,6 +170,14 @@ int main(int argc, char * argv[])
 				syslog(LOG_DEBUG,"Usando Hilo %d\n",i);
 				break;
 			}
+			for(j = 0; j < threads; j++)
+			{
+				sprintf(printBuffer,"%d ",ready[j]);
+				write(log_fd, printBuffer, strlen(printBuffer));
+			}
+			sprintf(printBuffer,"\n");
+			write(log_fd, printBuffer, strlen(printBuffer));
+			
 		}
 
 		if(!flag_asignado_hilo)
