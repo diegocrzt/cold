@@ -9,7 +9,6 @@
 #include <time.h>
 #include <syslog.h>
 #include <signal.h>
-#include <pthread.h> 
 #include "config_parser.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -31,6 +30,18 @@
 
 
 */
+
+//Estructuras de datos
+typedef struct
+{
+	int thread_index;
+	int address_size; //Socket Address Structure size
+	int socket_descriptor;
+	struct sockaddr_in socket;
+	int log_fd;
+} thread_arg;
+
+char * ready;
 
 // Biblioteca de Funciones de:
 // Hash, postgres, semaforos
@@ -66,4 +77,9 @@ char authentication(char * acl_file, char * usuario, char * clave);
 */
 int config_parser (char * config_file, int * puerto, int * threads, int * timeout, char ** logpath, char ** logfile);
 
+
+/*
+	EL CORE DAEMON
+*/
+void * coredaemon(void * argumento);
 

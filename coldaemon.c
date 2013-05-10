@@ -1,6 +1,6 @@
 #include "coldaemon.h"
 #include <syslog.h>
-
+#include <pthread.h>
 
 int main(int argc, char * argv[])
 {
@@ -23,6 +23,9 @@ int main(int argc, char * argv[])
 	char printBuffer[512];
 	int i, len, log_fd, ret;
 	pthread_t * hilo;
+	thread_arg  * argumento;
+	int create_thread_value;
+	char flag_asignado_hilo;
 
 	if(argc != 2)
 	{
@@ -82,6 +85,12 @@ int main(int argc, char * argv[])
 	syslog(LOG_INFO,"Cobros On Line\n");
 
 	hilo = (pthread_t *) malloc(sizeof(pthread_t) * threads);
+	argumento = (thread_arg *)malloc(sizeof(thread_arg) * threads);
+	ready = (char *)calloc(threads, sizeof(char));
+	for(i = 0; i < threads; i++)
+	{
+		ready[i] = 1;
+	}
 	
 	strcpy(log,logpath);
 	strcat(log,logfile);
@@ -93,7 +102,7 @@ int main(int argc, char * argv[])
 		syslog(LOG_ERR,"No se puede abrir el fichero %s (%d)\n",log, log_fd);
 		return LOG_ERROR;
 	}
-	strcpy(printBuffer,"Demonio\n");
+	strcpy(printBuffer,"coldaemon become a full daemon\n");
 	write(log_fd, printBuffer, strlen(printBuffer));
 
 	// Implementar Sockets
@@ -126,6 +135,8 @@ int main(int argc, char * argv[])
 	}
 	
 	// registrar que el servidor ya puede aceptar conexiones
+	
+	i = 0;
 
 	while(1)
 	{
@@ -137,7 +148,36 @@ int main(int argc, char * argv[])
 
 			exit(ACCEPT_CONNECTION_ERROR);
 		}
-		write(log_fd, "Paquete kachiai\n", strlen("Paquete kachiai\n"));
+		strcpy(printBuffer,"Conexión Entrante\n");
+		write(log_fd, printBuffer, strlen(printBuffer));
+		
+		for(; i < threads; i++)
+		{
+			if( ready[i] )
+			{
+				flag_asignado_hilo = 1;
+				ready[i] = 0;
+				argumento[i].thread_index = i;
+				argumento[i].address_size = address_size;
+				argumento[i].socket_descriptor = temp_sock_descriptor;	
+				argumento[i].socket = pin;
+				argumento[i].log_fd = log_fd;
+				create_thread_value = pthread_create(&hilo[i],NULL, coredaemon, (void *) &argumento[i]); 
+				syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
+			}
+		}
+
+		if(!flag_asignado_hilo)
+		{
+			// Rechazar la conexión
+			strcpy(printBuffer, "No hay hilos disponibles\n");
+			write(log_fd, printBuffer, strlen(printBuffer));
+		}
+		flag_asignado_hilo = 0;
+		if( i == threads)
+		{
+			i = 0;
+		}
 	}
 	/*
 		Incomplete Implementation
