@@ -150,11 +150,14 @@ int main(int argc, char * argv[])
 		}
 		strcpy(printBuffer,"Conexión Entrante\n");
 		write(log_fd, printBuffer, strlen(printBuffer));
-		
+
+		syslog(LOG_DEBUG,"threads = %d\n",threads);
 		for(; i < threads; i++)
 		{
+			syslog(LOG_DEBUG,"Verificando Hilo  = %d\n",i);
 			if( ready[i] )
 			{
+				syslog(LOG_DEBUG,"hilo %d disponible\n",i);
 				flag_asignado_hilo = 1;
 				ready[i] = 0;
 				argumento[i].thread_index = i;
@@ -164,6 +167,8 @@ int main(int argc, char * argv[])
 				argumento[i].log_fd = log_fd;
 				create_thread_value = pthread_create(&hilo[i],NULL, coredaemon, (void *) &argumento[i]); 
 				syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
+				syslog(LOG_DEBUG,"Usando Hilo %d\n",i);
+				break;
 			}
 		}
 
