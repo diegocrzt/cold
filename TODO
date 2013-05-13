@@ -1,17 +1,16 @@
 Depurar
-- Cuando se mata al demonio, la conexión queda establecida por un tiempo esperando 
-a recibir el mensaje de fin de conexión
-- Desconexión por TimeOut
+- Cuando se mata al demonio, la conexión queda establecida por un tiempo esperando a recibir el mensaje de fin de conexión
 - Verificar que los hilos estén disponibles u ocupados adecuadamente (vector ready)
-- Hash dependiente de la longitud de la palabra
-- Autenticación, falla. no vuelve al comienzo del fichero
+- Hash dependiente de la longitud de la palabra(Diego)
+- Autenticación, falla. no vuelve al comienzo del fichero(Diego)
 
 Implementar
-- COMENTARIOS(Nico como voluntario)
+- Latex(Nico como voluntario)
 - Implementar Semaforos(Nico como voluntario)
-- Señales
-- parser
-- BD
-- IPC
-- integración con servicios del sistema
-
+- Señales(Diego)
+- parser (Nico)
+- BD(Ariel)
+- IPC //MUTEX ver si implementamos algo más(Nico)
+- integración con servicios del sistema (Lena)
+- Desconexión por TimeOut(Diego)
+- config_parser Agregar los parámetros para el archivo ACL(Ariel)
