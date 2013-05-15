@@ -6,7 +6,7 @@ int main ()
     char pass[50];
     char user_buscado[50];
     char pass_buscado[50];
-    unsigned long hash_pass_buscado;  
+    uint32_t hash_pass_buscado;  
     FILE * acl;
  
     //activar si queremos guardar mas usuarios
@@ -39,7 +39,7 @@ int main ()
       printf("%p ERROR NO ABRE EL ARCHIVO ",acl);
    }
 
-   authentication (acl, user_buscado, hash_pass_buscado);/* llama a la funcion authentication enviando el archivo acl, el user a buscar, y el pass hasheado */
+   authentication ("cold.users.acl", user_buscado, hash_pass_buscado);/* llama a la funcion authentication enviando el archivo acl, el user a buscar, y el pass hasheado */
 //FIN DE AUTENTICACION
 
     
