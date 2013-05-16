@@ -24,11 +24,6 @@
 	ej: #define MACRO valor_macro
 	todos los nombres de función en minúsculas
 	
-
-
-
-
-
 */
 
 //Estructuras de datos
@@ -39,7 +34,8 @@ typedef struct
 	int socket_descriptor;
 	struct sockaddr_in socket;
 	int log_fd;
-	FILE * acl_file;
+	char * acl_file;
+	int timeout;
 } thread_arg;
 
 char * ready;

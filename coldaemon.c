@@ -6,14 +6,15 @@ int main(int argc, char * argv[])
 {
 	char * config_file;
 	pid_t pid, sid;
-	// Valores por defecto solo para pruebas
 	int puerto;
 	int threads;
 	int timeout;
 	char * logpath;
 	char * logfile;
 	char log[512];
-	// Recuerda quitar los valores por defecto
+	char acl_file[512];
+	char * aclpath = "/tmp/";
+	char * aclfile = "cold.users.acl";
 	struct sockaddr_in sin;
 	struct sockaddr_in pin;
 	int sock_descriptor;
@@ -26,7 +27,7 @@ int main(int argc, char * argv[])
 	thread_arg  * argumento;
 	int create_thread_value;
 	char flag_asignado_hilo;
-	FILE * acl_file;
+	FILE * temp_file;
 
 	if(argc != 2)
 	{
@@ -45,8 +46,6 @@ int main(int argc, char * argv[])
 		return ret;
 	}
 	// REMEBER TO FREE MEMORY OF POINTER POINTER
-	syslog(LOG_DEBUG,"%d\n%d\n%d\n%s\n%s\n",puerto, threads, timeout, logpath, logfile);
-
 	pid = fork();
 	
 	if(pid < 0)
@@ -69,12 +68,20 @@ int main(int argc, char * argv[])
 		syslog(LOG_ERR,"No se puede crear la sesión\n");
 		return SESSION_ERROR;
 	}
-	
-	if( ( acl_file = fopen("cold.users.acl", "r") ) == NULL )
+
+	syslog(LOG_ERR," Copiando a acl_file, '%s' '%s'\n",aclpath,aclfile);
+	strcpy(acl_file,aclpath);
+	strcat(acl_file,aclfile);
+	syslog(LOG_ERR," Copiado a acl_file, '%s'\n",acl_file);
+	//free(aclpath);
+	//free(aclfile);
+	syslog(LOG_ERR," REMEMBER TO FREE POINTERS\n");
+	if( ( temp_file  = fopen(acl_file, "r") ) == NULL )
 	{
-		syslog(LOG_ERR,"No existe el archivo cold.users.acl\n");
+		syslog(LOG_ERR,"No existe el archivo %s o no se puede abrir\n",acl_file);
 		return -1;// CODIGO DE ERROR, DEFINIR
 	}
+	fclose(temp_file); // Solo para determinar si el fichero existe y se puede abrir
 
 	if( (chdir("/")) < 0)
 	{
@@ -159,9 +166,16 @@ int main(int argc, char * argv[])
 		write(log_fd, printBuffer, strlen(printBuffer));
 
 		syslog(LOG_DEBUG,"threads = %d\n",threads);
-		for(; i < threads; i++)
+		for(i = 0; i < threads; i++)
 		{
 			syslog(LOG_DEBUG,"Verificando Hilo  = %d\n",i);
+			for(j = 0; j < threads; j++)
+			{
+				sprintf(printBuffer,"%d ",ready[j]);
+				write(log_fd, printBuffer, strlen(printBuffer));
+			}
+			sprintf(printBuffer,"\n");
+			write(log_fd, printBuffer, strlen(printBuffer));
 			if( ready[i] )
 			{
 				syslog(LOG_DEBUG,"hilo %d disponible\n",i);
@@ -173,6 +187,7 @@ int main(int argc, char * argv[])
 				argumento[i].socket = pin;
 				argumento[i].log_fd = log_fd;
 				argumento[i].acl_file = acl_file;
+				argumento[i].timeout = timeout;
 				create_thread_value = pthread_create(&hilo[i],NULL, coredaemon, (void *) &argumento[i]); 
 				syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
 				syslog(LOG_DEBUG,"Usando Hilo %d\n",i);
@@ -191,8 +206,14 @@ int main(int argc, char * argv[])
 		if(!flag_asignado_hilo)
 		{
 			// Rechazar la conexión
+			sprintf(printBuffer,"El servidor no acepta más conexiones en este momento\nPor favor aguarde un momento y reintente conectarse nuevamente\n");
+			if(send(temp_sock_descriptor, printBuffer, strlen(printBuffer), 0) == -1)
+			{
+				syslog(LOG_ERR,"Error al informar que ya no se aceptan más conexiónes\n");
+			}
 			strcpy(printBuffer, "No hay hilos disponibles\n");
 			write(log_fd, printBuffer, strlen(printBuffer));
+			close(temp_sock_descriptor);
 		}
 		flag_asignado_hilo = 0;
 		if( i == threads)
