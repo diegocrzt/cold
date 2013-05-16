@@ -35,6 +35,7 @@ typedef struct
 	struct sockaddr_in socket;
 	int log_fd;
 	char * acl_file;
+	int timeout;
 } thread_arg;
 
 char * ready;

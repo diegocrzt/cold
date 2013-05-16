@@ -187,6 +187,7 @@ int main(int argc, char * argv[])
 				argumento[i].socket = pin;
 				argumento[i].log_fd = log_fd;
 				argumento[i].acl_file = acl_file;
+				argumento[i].timeout = timeout;
 				create_thread_value = pthread_create(&hilo[i],NULL, coredaemon, (void *) &argumento[i]); 
 				syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
 				syslog(LOG_DEBUG,"Usando Hilo %d\n",i);

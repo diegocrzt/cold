@@ -15,6 +15,29 @@ void fin_hilo(thread_arg arg)
 	return;
 }
 
+int recvtimeout(int socket, char *buffer, int len, int timeout)
+{
+	fd_set fds;
+	int n;
+	struct timeval tv;
+	FD_ZERO(&fds);
+	FD_SET(socket, &fds);
+	tv.tv_sec = timeout;
+	tv.tv_usec = 0;
+	n = select(socket+1, &fds, NULL, NULL, &tv);
+	if (n == 0)
+	{
+		return -2; // timeout!
+	}
+	if (n == -1)
+	{
+		return -1; // error
+	}
+
+	return recv(socket, buffer, len, 0);
+}
+
+
 void * coredaemon(void * argumento)
 {
 	thread_arg arg = *((thread_arg * ) argumento);
@@ -35,9 +58,15 @@ void * coredaemon(void * argumento)
 		fin_hilo(arg);
 		return;
 	}
-	if( ( len = recv(arg.socket_descriptor, buffer, 16384,0) ) == -1 ) 
+	if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 ) 
 	{
-		writelog(arg.log_fd, "No se puede recibir\n");
+		writelog(arg.log_fd, "No se puede recibir: ");
+		if(len == -2)
+		{
+			writelog(arg.log_fd, "Timeout\n");
+		}else{
+			writelog(arg.log_fd, "Error de I/O\n");
+		}
 		fin_hilo(arg);
 		return;
 	}
@@ -56,9 +85,15 @@ void * coredaemon(void * argumento)
 		fin_hilo(arg);
 		return;
 	}
-	if( ( len = recv(arg.socket_descriptor, buffer, 16384,0) ) == -1 ) 
+	if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 ) 
 	{
 		writelog(arg.log_fd, "No se puede recibir\n");
+		if(len == -2)
+		{
+			writelog(arg.log_fd, "Timeout\n");
+		}else{
+			writelog(arg.log_fd, "Error de I/O\n");
+		}
 		fin_hilo(arg);
 		return;
 	}
@@ -96,9 +131,15 @@ void * coredaemon(void * argumento)
 		fin_hilo(arg);
 		return;
 	}
-	if( ( len = recv(arg.socket_descriptor, buffer, 16384,0) ) == -1 ) 
+	if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 ) 
 	{
 		writelog(arg.log_fd, "No se puede recibir\n");
+		if(len == -2)
+		{
+			writelog(arg.log_fd, "Timeout\n");
+		}else{
+			writelog(arg.log_fd, "Error de I/O\n");
+		}
 		fin_hilo(arg);
 		return;
 	}
@@ -126,9 +167,15 @@ void * coredaemon(void * argumento)
 			return;
         	}
 
-		if( ( len = recv(arg.socket_descriptor, buffer, 16384,0) ) == -1 )
+		if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 )
         	{
                 	writelog(arg.log_fd, "no se puede recibir\n");
+			if(len == -2)
+			{
+				writelog(arg.log_fd, "Timeout\n");
+			}else{
+				writelog(arg.log_fd, "Error de I/O\n");
+			}
 			fin_hilo(arg);
 			return;
         	}
