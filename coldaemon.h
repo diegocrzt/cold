@@ -9,11 +9,11 @@
 #include <time.h>
 #include <syslog.h>
 #include <signal.h>
-#include "config_parser.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <postgresql/libpq-fe.h>
 //#include <netbd.h>
 
 /*
@@ -37,6 +37,23 @@ typedef struct
 	char * acl_file;
 	int timeout;
 } thread_arg;
+
+typedef struct 
+{
+	char *codser; //3 DIGITOS codigo de servicio
+	int numtran; //6 DIGITOS numero de transaccion
+	char *fechahora; //14 DIGITOS fecha y hora de transaccion
+	char *tipofact; // 3 DIGITOS tipo de factura
+	char *comprobante; //11 DIGITOS numero de comprobante
+	int monto; //12 DIGITOS monto de la factura
+	char *vencimiento; //8 DIGITOS fecha de vencimiento
+	int verificador; //1 DIGITOS digito verificador
+	char *prefijo; //4 DIGITOS prefijo
+	char *numero; //7 DIGITOS numero telefonico
+	int nummed; //15 DIGITOS numero de medidor
+	char *abonado; //9 DIGITOS numero de abonado
+	char *mensaje; //20 CARACTERES DE MENSAJE
+}SERVICIO;
 
 char * ready;
 
@@ -72,11 +89,27 @@ char * ready;
 	config_file, puntero al nombre del archivo de configuración
 	puerto, threads, timeout, logpath, logfile, parámetros del demonio.
 */
-int config_parser (char * config_file, int * puerto, int * threads, int * timeout, char ** logpath, char ** logfile);
-
+int config_parser (char * config_file, int * puerto, int * threads, int * timeout, char ** logpath, char ** logfile, char ** aclpath, char ** aclfile);
 
 /*
 	EL CORE DAEMON
 */
 void * coredaemon(void * argumento);
+
+/*
+	Parser de patrones de entrada
+*/
+char col_parser (SERVICIO *servicio, char * patron);
+char rev_parser (SERVICIO *reversa, char * patron);
+
+
+/*
+	Módulo de Base de Datos
+*/
+int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd);
+
+/*
+	UTILERIA GENERAL
+*/
+void writelog(int log_fd, const char * mensaje);
 

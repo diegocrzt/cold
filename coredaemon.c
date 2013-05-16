@@ -1,12 +1,7 @@
 #include "coldaemon.h"
 #include <string.h>
 #include "hash.h"
-
-void writelog(int log_fd, const char * mensaje)
-{
-	write(log_fd, mensaje, strlen(mensaje));
-	return;
-}
+#include <postgresql/libpq-fe.h>
 
 void fin_hilo(thread_arg arg)
 {
@@ -48,6 +43,7 @@ void * coredaemon(void * argumento)
 	int len;
 	char usuario[100];
 	char clave[100];
+	SERVICIO serv;
 
 	writelog(arg.log_fd,"Iniciando Autenticación\n");
 	sprintf(resp,"Usuario: ");
@@ -150,6 +146,7 @@ void * coredaemon(void * argumento)
 		
 		sprintf(resp,"Su mensaje fue '%s'\n$ ",buffer);
 		sprintf(temp,"[DEBUG]Hilo %2d: '%s'\n",arg.thread_index,buffer);
+		writelog(arg.log_fd, temp);
 
 		// Motor de Inferencia
 		if(strcmp(buffer,"exit") == 0)
@@ -159,7 +156,67 @@ void * coredaemon(void * argumento)
 			fin_hilo(arg);
 			return;
 		}
-		writelog(arg.log_fd, temp);
+		if(strcmp(buffer,"help") == 0)
+		{
+			sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
+			writelog(arg.log_fd, temp);
+		}
+		if(strcmp(buffer,"lastrx") == 0)
+		{
+			sprintf(temp,"IMPRIMIR LAS ÚLTIMAS 3 TRANSACCIONES\n");
+			writelog(arg.log_fd, temp);
+			if( db_module("lastrx", serv,usuario,arg.log_fd) != 0)
+	                		writelog(arg.log_fd,"EXPLOTO BD Intentando mostrar las útlimas 3 transacciones\n");
+		}
+		if(strncmp(buffer,"col ",4) == 0)
+		{
+			sprintf(temp,"PARSEANDO MENSAJE DE COBRO EN LINEA\n");
+			writelog(arg.log_fd, temp);
+			buffer[len-1] = '\n';
+			if( col_parser(&serv,buffer+4) != 0)
+			{
+				sprintf(temp,"Patron inválido\n");
+				writelog(arg.log_fd, temp);
+				sprintf(resp,"Patron inválido. Verifique y reintente\n$ ");
+				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
+        			{
+                			writelog(arg.log_fd,"No se puede enviar\n");
+					fin_hilo(arg);
+					return;
+        			}
+			}else{
+				//MAGIA
+                		writelog(arg.log_fd,"MAGIA DE BD\n");
+				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
+				if( db_module("col",serv,usuario,arg.log_fd) != 0)
+	                		writelog(arg.log_fd,"CoL EXPLOTO BD\n");
+			}
+		}
+		if(strncmp(buffer,"rev ",4) == 0)
+		{
+			sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
+			writelog(arg.log_fd, temp);
+			buffer[len-1] = '\n';
+			if( rev_parser(&serv,buffer+4) != 0)
+			{
+				sprintf(temp,"Patron inválido\n");
+				writelog(arg.log_fd, temp);
+				sprintf(resp,"Patron inválido. Verifique y reintente\n$ ");
+				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
+        			{
+                			writelog(arg.log_fd,"No se puede enviar\n");
+					fin_hilo(arg);
+					return;
+        			}
+			}else{
+				//MAGIA
+                		writelog(arg.log_fd,"MAGIA DE BD\n");
+				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
+				if( db_module("rev",serv,usuario,arg.log_fd) != 0)
+	                		writelog(arg.log_fd,"EXPLOTO BD\n");
+			}
+		}
+
 		if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         	{
                 	writelog(arg.log_fd,"No se puede enviar\n");
@@ -189,3 +246,4 @@ void * coredaemon(void * argumento)
 	fin_hilo(arg);
 	return;
 }
+

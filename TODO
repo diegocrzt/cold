@@ -3,14 +3,18 @@ Depurar
 + Verificar que los hilos estén disponibles u ocupados adecuadamente (vector ready)
 + Hash dependiente de la longitud de la palabra(Diego)
 + Autenticación, falla. no vuelve al comienzo del fichero(Diego)
+- La desconexión (de onda) de la base de datos
 
 Implementar
 - Latex(Nico como voluntario)
 - Implementar Semaforos(Nico como voluntario)
 - Señales(Diego)
-- parser (Nico)
-- BD(Ariel)
++ parser (Nico)
++ BD(Ariel)
 - IPC //MUTEX ver si implementamos algo más(Nico)
 - integración con servicios del sistema (Lena)
 + Desconexión por TimeOut(Diego)
-- config_parser Agregar los parámetros para el archivo ACL(Ariel)
++ config_parser Agregar los parámetros para el archivo ACL(Nico)
+- lastrx, debe devolver una cadena al usuario de alguna manera(Ariel)
+- Los códigos de error(Diego)
+- Loggear apropiadamente(Diego)

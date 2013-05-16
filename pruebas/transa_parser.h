@@ -20,5 +20,5 @@ typedef struct
 }SERVICIO;
 
 
-void col_parser (SERVICIO *servicio);
-void rev_parser (SERVICIO *reversa);
+char col_parser (SERVICIO *servicio);
+char rev_parser (SERVICIO *reversa);

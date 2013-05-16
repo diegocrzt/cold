@@ -6,8 +6,10 @@ int main (void)
 {
 	SERVICIO servicio;
 	SERVICIO reversa;
+	char a;
 
-	//col_parser(&servicio);
+	//a = col_parser(&servicio);
+	//printf("ERROR:%d\n", a);
 	/*printf("Codigo:%s\n",servicio.codser);
 	printf("Transaccion:%d\n",servicio.numtran);
 	printf("FechaHora:%s\n",servicio.fechahora);
@@ -20,5 +22,7 @@ int main (void)
 	printf("Numero:%s\n",servicio.numero);
 	printf("Medidor:%d\n",servicio.nummed);
 	printf("Abonado:%s\n",servicio.abonado);*/
-	rev_parser(&reversa);
+	a = rev_parser(&reversa);
+	printf("ERROR:%d\n", a);
+
 }

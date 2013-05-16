@@ -1,7 +1,6 @@
-//#include "coldaemon.h"
-#include "transa_parser.h"
+#include "coldaemon.h"
 
-char col_parser (SERVICIO *servicio)
+char col_parser (SERVICIO *servicio, char * patron)
 {
 	int contcar = 0; //contador de caracteres
 	char string[58] = {0}; //rubro
@@ -11,7 +10,7 @@ char col_parser (SERVICIO *servicio)
 	int biciesto = 0; //booleano de año biciesto
 	//Asignar el tamaño de codigo de servicio
 	auxiliar = (char *) malloc(sizeof(char)*3);
-	char patron[] = "0011234562013121216321500112345678912000000100000201312127\n";
+	//char patron[] = "0011234562013121216321500112345678912000000100000201312127\n";
 	int index = 0;
 	
 	//establecer el rubro de transaccion
@@ -472,7 +471,7 @@ char col_parser (SERVICIO *servicio)
 	return 0;
 }
 
-char rev_parser(SERVICIO *servicio)
+char rev_parser(SERVICIO *servicio, char * patron)
 {
 	int contcar = 0; //contador de caracteres
 	char string[23] = {0}; //rubro
@@ -481,7 +480,7 @@ char rev_parser(SERVICIO *servicio)
 	int biciesto = 0; //booleano de año biciesto
 	char *tokenPtr; //puntero para los tokens
 	char caracter[2]={'\0'};
-	char patron[] = "00512345620131212163215Factura incorrecta.\n";
+	//char patron[] = "00512345620131212163215Factura incorrecta.\n";
 	int index = 0;
 	//Asignar el tamaño de codigo de servicio
 	auxiliar = (char *) malloc(sizeof(char)*3);

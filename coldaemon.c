@@ -13,8 +13,8 @@ int main(int argc, char * argv[])
 	char * logfile;
 	char log[512];
 	char acl_file[512];
-	char * aclpath = "/tmp/";
-	char * aclfile = "cold.users.acl";
+	char * aclpath;
+	char * aclfile;
 	struct sockaddr_in sin;
 	struct sockaddr_in pin;
 	int sock_descriptor;
@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 	// Implentar parser de archivo de configuración
 	// y configurar los parámetros del demonio
 
-	if( ret = config_parser(config_file, &puerto, &threads, &timeout, &logpath, &logfile)){
+	if( ret = config_parser(config_file, &puerto, &threads, &timeout, &logpath, &logfile, &aclpath, &aclfile)){
 		syslog(LOG_ERR,"Fichero de configuración inválido\n");
 		return ret;
 	}
@@ -69,20 +69,6 @@ int main(int argc, char * argv[])
 		return SESSION_ERROR;
 	}
 
-	syslog(LOG_ERR," Copiando a acl_file, '%s' '%s'\n",aclpath,aclfile);
-	strcpy(acl_file,aclpath);
-	strcat(acl_file,aclfile);
-	syslog(LOG_ERR," Copiado a acl_file, '%s'\n",acl_file);
-	//free(aclpath);
-	//free(aclfile);
-	syslog(LOG_ERR," REMEMBER TO FREE POINTERS\n");
-	if( ( temp_file  = fopen(acl_file, "r") ) == NULL )
-	{
-		syslog(LOG_ERR,"No existe el archivo %s o no se puede abrir\n",acl_file);
-		return -1;// CODIGO DE ERROR, DEFINIR
-	}
-	fclose(temp_file); // Solo para determinar si el fichero existe y se puede abrir
-
 	if( (chdir("/")) < 0)
 	{
 		syslog(LOG_ERR,"No se puede cambiar de directorio\n");
@@ -97,6 +83,20 @@ int main(int argc, char * argv[])
 
 	openlog("cold", LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO,"Cobros On Line\n");
+	
+	syslog(LOG_ERR," Copiando a acl_file, '%s' '%s'\n",aclpath,aclfile);
+	strcpy(acl_file,aclpath);
+	strcat(acl_file,aclfile);
+	syslog(LOG_ERR," Copiado a acl_file, '%s'\n",acl_file);
+	free(aclpath);
+	free(aclfile);
+	syslog(LOG_ERR," REMEMBER TO FREE POINTERS\n");
+	if( ( temp_file  = fopen(acl_file, "r") ) == NULL )
+	{
+		syslog(LOG_ERR,"No existe el archivo %s o no se puede abrir\n",acl_file);
+		return -1;// CODIGO DE ERROR, DEFINIR
+	}
+	fclose(temp_file); // Solo para determinar si el fichero existe y se puede abrir
 
 	hilo = (pthread_t *) malloc(sizeof(pthread_t) * threads);
 	argumento = (thread_arg *)malloc(sizeof(thread_arg) * threads);
