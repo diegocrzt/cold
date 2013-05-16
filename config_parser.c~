@@ -1,6 +1,6 @@
 #include "coldaemon.h"
 
-int config_parser(char * config_file, int * puerto, int * threads, int *timeout, char ** logpath, char ** logfile, char ** alcpath, char ** aclfile)
+int config_parser(char * config_file, int * puerto, int * threads, int *timeout, char ** logpath, char ** logfile)
 {
 	char *tokenPtr; //puntero para los tokens
 	char string[100]; //string donde se almacenan las lineas de configuracion
@@ -10,7 +10,7 @@ int config_parser(char * config_file, int * puerto, int * threads, int *timeout,
 	if(( ficheroPtr = fopen( config_file, "r")) == NULL)
 		return INVALID_CONFIG_FILE;
 	/* Comparacion de string con cada argumento de configuracion */
-	for(i=0; i<=6;i++)
+	for(i=0; i<=4;i++)
 	{
 	/* Lectura de los argumentos de configuración */
 		fscanf( ficheroPtr, "%s", string);
@@ -40,18 +40,6 @@ int config_parser(char * config_file, int * puerto, int * threads, int *timeout,
 			strcpy(*logpath, tokenPtr);
 		}
 		if(strstr(tokenPtr,"logfile"))//si es logfile
-		{
-			tokenPtr = strtok(NULL," ");
-			*logfile = (char *) malloc(sizeof(char)*strlen(tokenPtr));
-			strcpy(*logfile, tokenPtr);
-		}
-		if(strstr(tokenPtr,"aclpath"))//si es logfile
-		{
-			tokenPtr = strtok(NULL," ");
-			*logfile = (char *) malloc(sizeof(char)*strlen(tokenPtr));
-			strcpy(*logfile, tokenPtr);
-		}
-		if(strstr(tokenPtr,"aclfile"))//si es logfile
 		{
 			tokenPtr = strtok(NULL," ");
 			*logfile = (char *) malloc(sizeof(char)*strlen(tokenPtr));
