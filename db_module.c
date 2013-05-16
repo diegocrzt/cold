@@ -110,7 +110,7 @@ int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_
 	return entero;
 }
 
-int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd)
+int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char * resp)
 {
 	const char 	*conninfo;  
 	PGconn     	*conn;
@@ -313,15 +313,18 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd)
 			writelog(log_fd,temp);
 			retorno = 1;
 		}else{
-			for (t = 0; t < PQntuples(res); t++)
+			resp[0] = '\0';
+			for (t = 0; t < PQntuples(res) && t < 3; t++)
 			{
 				for (f = 0; f < PQnfields(res); f++)
 				{
 				    //concatenar resultados de PQgetvalue
 				    sprintf(temp,"%s ", PQgetvalue(res, t, f));
+					strcat(resp,temp);
 					writelog(log_fd,temp);
 				}
 				sprintf(temp,"\n");
+				strcat(resp,temp);
 				writelog(log_fd,temp);
 			}
 		}

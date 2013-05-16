@@ -106,7 +106,7 @@ char rev_parser (SERVICIO *reversa, char * patron);
 /*
 	Módulo de Base de Datos
 */
-int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd);
+int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char * resp);
 
 /*
 	UTILERIA GENERAL

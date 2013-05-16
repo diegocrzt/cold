@@ -144,7 +144,7 @@ void * coredaemon(void * argumento)
 	{
 		buffer[len-1]='\0';
 		
-		sprintf(resp,"Su mensaje fue '%s'\n$ ",buffer);
+		//sprintf(resp,"Su mensaje fue '%s'\n$ ",buffer);
 		sprintf(temp,"[DEBUG]Hilo %2d: '%s'\n",arg.thread_index,buffer);
 		writelog(arg.log_fd, temp);
 
@@ -165,8 +165,17 @@ void * coredaemon(void * argumento)
 		{
 			sprintf(temp,"IMPRIMIR LAS ÚLTIMAS 3 TRANSACCIONES\n");
 			writelog(arg.log_fd, temp);
-			if( db_module("lastrx", serv,usuario,arg.log_fd) != 0)
-	                		writelog(arg.log_fd,"EXPLOTO BD Intentando mostrar las útlimas 3 transacciones\n");
+			if( db_module("lastrx", serv,usuario,arg.log_fd,resp) != 0)
+			{
+	               		writelog(arg.log_fd,"EXPLOTO BD Intentando mostrar las útlimas 3 transacciones\n");
+			}else{
+				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
+        			{
+                			writelog(arg.log_fd,"No se puede enviar\n");
+					fin_hilo(arg);
+					return;
+        			}
+			}
 		}
 		if(strncmp(buffer,"col ",4) == 0)
 		{
@@ -188,7 +197,7 @@ void * coredaemon(void * argumento)
 				//MAGIA
                 		writelog(arg.log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("col",serv,usuario,arg.log_fd) != 0)
+				if( db_module("col",serv,usuario,arg.log_fd,NULL) != 0)
 	                		writelog(arg.log_fd,"CoL EXPLOTO BD\n");
 			}
 		}
@@ -212,11 +221,12 @@ void * coredaemon(void * argumento)
 				//MAGIA
                 		writelog(arg.log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("rev",serv,usuario,arg.log_fd) != 0)
+				if( db_module("rev",serv,usuario,arg.log_fd,NULL) != 0)
 	                		writelog(arg.log_fd,"EXPLOTO BD\n");
 			}
 		}
 
+		sprintf(resp,"$ ");
 		if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         	{
                 	writelog(arg.log_fd,"No se puede enviar\n");
