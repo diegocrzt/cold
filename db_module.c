@@ -7,24 +7,21 @@ exit_nicely(PGconn *conn)
     return;
 }
 
-int existe_factura(const char * compr,const char * medidor, const char * prefijo, const char * numero, const char * abonado, PGconn * conn, PGresult * res,int log_fd){
+int existe_factura(const char * compr,const char * medidor, const char * prefijo, const char * numero, const char * abonado,const char * monto, const char * vencimiento, PGconn * conn, PGresult * res,int log_fd){
 	
-	const char *parametros[5];
+	const char *parametros[7];
 	parametros[0] = compr;
 	parametros[1] = medidor;
 	parametros[2] = abonado;
 	parametros[3] = prefijo;
 	parametros[4] = numero;
-	/*parametros[0] = "09";
-	parametros[1] = "654";
-	parametros[2] = "987";
-	parametros[3] = "5464";
-	parametros[4] = "987";*/
+	parametros[5] = monto;
+	parametros[6] = vencimiento;
 	int entero = 0;
 	char temp[512];
 	res = PQexecParams(conn,
-						"SELECT * FROM pendientes WHERE compr=$1 OR medidor=$2 OR abonado=$3 OR 							(numero=$4 AND prefijo=$5)",
-						5,
+						"SELECT * FROM pendientes WHERE (compr=$1 OR medidor=$2 OR abonado=$3 OR 							(numero=$4 AND prefijo=$5)) AND monto=$6 AND vencimiento>=$7",
+						7,
 						NULL,
 						parametros,
 						NULL,
@@ -33,7 +30,7 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 	
 	if (PQntuples(res) == 0)
     {
-    	sprintf(temp,"No se encontro la factura\n");
+    	sprintf(temp,"Factura inválida\n");
 	writelog(log_fd,temp);
        	entero = 1;
     }
@@ -41,10 +38,9 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 	return entero;
 }
 
-int coincide_monto(const char * monto, PGconn * conn, PGresult * res, int log_fd){
+/*int coincide_monto(const char * monto, PGconn * conn, PGresult * res, int log_fd){
 	const char *parametros[1];
 	parametros[0] = monto;
-	//parametros[0] = "125000";
 	int entero = 0;
 	char temp[512];
 	res = PQexecParams(conn, "SELECT * FROM pendientes WHERE monto=$1",
@@ -62,12 +58,11 @@ int coincide_monto(const char * monto, PGconn * conn, PGresult * res, int log_fd
 	}
 	PQclear(res);
 	return entero;
-}
+}*/
 
-int no_vencio(const char * vencimiento, PGconn * conn, PGresult * res, int log_fd){
+/*int no_vencio(const char * vencimiento, PGconn * conn, PGresult * res, int log_fd){
 	const char *parametros[1];
 	parametros[0] = vencimiento;
-	//parametros[0] = "20131313";
 	int entero = 0;
 	char temp[512];
 	res = PQexecParams(conn, "SELECT * FROM pendientes WHERE vencimiento<=$1",
@@ -85,12 +80,11 @@ int no_vencio(const char * vencimiento, PGconn * conn, PGresult * res, int log_f
 	}
 	PQclear(res);
 	return entero;
-}
+}*/
 
 int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_fd){
 	const char *parametros[1];
 	parametros[0] = transaccion;
-	//parametros[0] = "987";
 	int entero = 0;
 	char temp[512];
 	res = PQexecParams(conn, "SELECT * FROM pagadas WHERE transaccion=$1",
@@ -120,40 +114,15 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     int         paramLengths[14];
     int         paramFormats[14];
     int			t,f;              
-    //char		*operacion;            
-    char 		*cod_serv = "001";
-    char		*transaccion = "65";
-    char		*comprobante = "80878"; 
-    char		*monto = "12000";
-    char		*fecha = "9/9/11";
-    char		*vencimiento = "9/9/10";
-	char 		*comando;
 	char aux_monto[512];
 	char aux_nummed[512];
 	char aux_numtran[512];
+	char aux_venc[512];
 	char aux_verificador[2];
 	char temp[512] = {0};
+	
 	conninfo = "dbname = coldaemon";
-	//operacion = "lastrx";
-
-	// Asignando valores a paramValues
-
-/*
-	paramValues[0]="001";				//cod_serv
-	paramValues[1]="002";				//tipo
-	paramValues[2]="12345678912";		//compr
-	paramValues[3]="000000100000"; 		//monto
-	paramValues[4]="7";					//dig_verif
-	paramValues[5]="0644";   			//prefijo
-	paramValues[6]="9876543";			//numero
-	paramValues[7]="987654321012345";	//medidor
-	paramValues[8]="987654321";			//abonado
-	paramValues[9]="123456";			//transaccion
-	paramValues[10]="20131212163215";	//fecha_hora
-	paramValues[11]="ariel";			//usuario
-	paramValues[12]="20131212";			//vencimiento
-*/
-
+	
 	paramValues[0] = serv.codser;
 	paramValues[1] = serv.tipofact;
 	paramValues[2] = serv.comprobante;
@@ -175,8 +144,11 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[9] = aux_numtran;
 	paramValues[10] = serv.fechahora;
 	paramValues[11] = usuario;
-	paramValues[12] = serv.vencimiento;
-
+	
+	strcpy(aux_venc,serv.vencimiento);
+	strcat(aux_venc,"235959");
+	paramValues[12] = aux_venc;
+	
 	
     // Se realiza la conexión a la base de datos
     conn = PQconnectdb(conninfo);
@@ -190,16 +162,13 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
         exit_nicely(conn);
     }
 	
-	/* 
-	*	- verificar operacion
-	*	- si es insercion comprobar que los id de las operaciones no coincidan, generar la cadena, 		*  	insertar y borrar la factura de pendientes
-	*	- si es reverso comprobar que exista la transaccion, mover a pendientes y borrar de pagadas
-	*	- si es listado listar las 3 ultimas transacciones del user
-	*/
-	
+	//INICIO DE OPERACIONES EN LA BASE DE DATOS
 	if(strcmp(operacion, "col") == 0){
-		
-		if(existe_factura(paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],conn,res,log_fd) == 0 && coincide_monto(paramValues[3],conn,res,log_fd) == 0 && no_vencio(paramValues[12],conn,res,log_fd) == 0){
+		/*
+		*	se envia serv.fecha hora a existe_factura y no serv.vencimiento
+		*	se cambia paramValues[10] por paramValues[12]
+		*/
+		if(existe_factura(paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd) == 0/*&& coincide_monto(paramValues[3],conn,res,log_fd) == 0 && no_vencio(paramValues[12],conn,res,log_fd) == 0*/){
 			//insertar registro en la tabla de pagadas
 			res = PQexecParams(conn,
                        "INSERT INTO Pagadas VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
@@ -219,20 +188,20 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
         		exit_nicely(conn);
     		}     
     		sprintf(temp,"Insert ejecutado\n");
-		writelog(log_fd,temp);
+			writelog(log_fd,temp);
 			PQclear(res);
 			
 			//eliminar registro de la tabla pendientes
 			//asignar valores a paramValues (si! hace falta)
 			
-			paramValues[0]="12345678912";		//compr
-			paramValues[1]="987654321012345";	//medidor
-			paramValues[2]="0644";   			//prefijo
-			paramValues[3]="9876543";			//numero
-			paramValues[4]="987654321";			//abonado
+			paramValues[0]=serv.comprobante;		//compr
+			paramValues[1]=aux_nummed;				//medidor
+			paramValues[2]=serv.prefijo;   			//prefijo
+			paramValues[3]=serv.numero;				//numero
+			paramValues[4]=serv.abonado;			//abonado
 			
 			res = PQexecParams(conn,
-						"DELETE FROM pendientes WHERE compr=$1 OR medidor=$2 OR abonado=$5 OR (prefijo=$3 AND numero=$4);",
+						"DELETE FROM pendientes WHERE compr=$1 OR medidor=$2 OR abonado=$5 OR 							(prefijo=$3 AND numero=$4);",
 						5,
 						NULL,
 						paramValues,
@@ -243,19 +212,19 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
         		sprintf(temp,"delete command failed: %s", PQerrorMessage(conn));
-			writelog(log_fd,temp);
+				writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
     		}
     		sprintf(temp,"Delete ejecutado\n");
-		writelog(log_fd,temp);
+			writelog(log_fd,temp);
 			PQclear(res);
 		}
 		
 	}else if(strcmp(operacion, "rev") == 0){
 	
 		if(existe_trx(paramValues[9],conn,res,log_fd) == 0){
-			sprintf(temp,"existe la transaccion\nMoviendo a pendientes\n");
+			sprintf(temp,"Existe la transaccion\nMoviendo a pendientes\n");
 			writelog(log_fd,temp);
 			
 			//mover a pendientes
@@ -278,7 +247,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			//borrar de pagadas
 			sprintf(temp,"borrando de pagadas\n");
 			writelog(log_fd,temp);
-			paramValues[0] = "123456";
+			paramValues[0] = aux_numtran;
 			res = PQexecParams(conn,
                        "DELETE FROM pagadas WHERE transaccion=$1;",
                        1,       // 1 parametro
