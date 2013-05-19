@@ -50,7 +50,7 @@ typedef struct
 	int verificador; //1 DIGITOS digito verificador
 	char *prefijo; //4 DIGITOS prefijo
 	char *numero; //7 DIGITOS numero telefonico
-	int nummed; //15 DIGITOS numero de medidor
+	char *nummed; //15 DIGITOS numero de medidor
 	char *abonado; //9 DIGITOS numero de abonado
 	char *mensaje; //20 CARACTERES DE MENSAJE
 }SERVICIO;

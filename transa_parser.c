@@ -252,8 +252,7 @@ char col_parser (SERVICIO *servicio, char * patron)
 				servicio->mensaje = "0";
 				break;
 			case 2:
-				//printf("Telefono Fijo\n");
-			
+				//printf("Telefono Fijo\n");	
 				//Asignar recursos al prefijo
 				servicio->prefijo = (char *)malloc(sizeof(char)*4);
 
@@ -314,10 +313,10 @@ char col_parser (SERVICIO *servicio, char * patron)
 				servicio->tipofact = "0";
 				servicio->vencimiento = "0";
 				servicio->verificador = 0;
-				servicio->prefijo = "0";
 				break;
 			case 3:
 				//printf("Suministro Electrico\n");
+				servicio->nummed = (char *)malloc(sizeof(char)*12);
 				//Asignar recursos al auxiliar
 				auxiliar = (char *)malloc(sizeof(char)*12);
 				
@@ -328,7 +327,7 @@ char col_parser (SERVICIO *servicio, char * patron)
 				}
 				
 				//Asignar el numero de medidor
-				servicio->nummed = atoi(auxiliar);
+				strcat(servicio->nummed, auxiliar);
 				//Liberar el auxiliar
 				//printf("Auxiliar: %s\n", auxiliar);
 				free(auxiliar);
@@ -415,7 +414,7 @@ char col_parser (SERVICIO *servicio, char * patron)
 				servicio->comprobante = "0";
 				servicio->vencimiento = "0";
 				servicio->verificador = 0;
-				servicio->nummed = 0;
+				servicio->nummed = "0";
 				servicio->abonado = "0";
 				servicio->mensaje = "0";
 				break;
@@ -461,7 +460,7 @@ char col_parser (SERVICIO *servicio, char * patron)
 				servicio->verificador = 0;
 				servicio->prefijo = "0";
 				servicio->numero = "0";
-				servicio->nummed = 0;
+				servicio->nummed = "0";
 				servicio->mensaje = "0";
 				break;
 			default:
