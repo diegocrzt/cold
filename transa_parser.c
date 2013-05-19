@@ -272,7 +272,6 @@ char col_parser (SERVICIO *servicio, char * patron)
 				//printf("Auxiliar: %s\n", auxiliar);
 				free(auxiliar);
 				//printf("Prefijo: %s\n", servicio->prefijo);
-
 				//Asignar recursos al numero
 				servicio->numero = (char *)malloc(sizeof(char)*7);
 				//Asignar recursos al auxiliar

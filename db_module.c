@@ -19,8 +19,9 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 	parametros[6] = vencimiento;
 	int entero = 0;
 	char temp[512];
+
 	res = PQexecParams(conn,
-						"SELECT * FROM pendientes WHERE (compr=$1 OR medidor=$2 OR abonado=$3 OR 							(numero=$4 AND prefijo=$5)) AND monto=$6 AND vencimiento>=$7",
+						"SELECT * FROM pendientes WHERE (compr=$1 OR medidor=$2 OR abonado=$3 OR 							(numero=$4 AND prefijo=$5)) AND monto=$6 AND vencimiento>=$7;",
 						7,
 						NULL,
 						parametros,
@@ -31,9 +32,11 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 	if (PQntuples(res) == 0)
     {
     	sprintf(temp,"Factura inválida\n");
-	writelog(log_fd,temp);
+		writelog(log_fd,temp);
        	entero = 1;
     }
+    
+    
     PQclear(res);
 	return entero;
 }
@@ -106,6 +109,7 @@ int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_
 
 int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char * resp)
 {
+	char temp[512] = {0};
 	const char 	*conninfo;  
 	PGconn     	*conn;
 	PGresult   	*res;
@@ -119,7 +123,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	char aux_numtran[512];
 	char aux_venc[512];
 	char aux_verificador[2];
-	char temp[512] = {0};
+	
 	
 	conninfo = "dbname = coldaemon";
 	
@@ -145,10 +149,15 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[10] = serv.fechahora;
 	paramValues[11] = usuario;
 	
-	strcpy(aux_venc,serv.vencimiento);
+	paramValues[12] = "20131212235959";
+	/*strcpy(aux_venc,serv.vencimiento);
 	strcat(aux_venc,"235959");
-	paramValues[12] = aux_venc;
+	paramValues[12] = aux_venc;*/
 	
+	sprintf(temp,"ENTRO A db_module\n");
+	writelog(log_fd,temp);
+	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %d\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed);
+	writelog(log_fd,temp);
 	
     // Se realiza la conexión a la base de datos
     conn = PQconnectdb(conninfo);
@@ -168,7 +177,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 		*	se envia serv.fecha hora a existe_factura y no serv.vencimiento
 		*	se cambia paramValues[10] por paramValues[12]
 		*/
-		if(existe_factura(paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd) == 0/*&& coincide_monto(paramValues[3],conn,res,log_fd) == 0 && no_vencio(paramValues[12],conn,res,log_fd) == 0*/){
+		if(existe_factura(paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd) == 0){
 			//insertar registro en la tabla de pagadas
 			res = PQexecParams(conn,
                        "INSERT INTO Pagadas VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
@@ -183,7 +192,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
             if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
         		sprintf(temp,"insert command failed: %s", PQerrorMessage(conn));
-			writelog(log_fd,temp);
+				writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
     		}     
@@ -193,22 +202,74 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			
 			//eliminar registro de la tabla pendientes
 			//asignar valores a paramValues (si! hace falta)
-			
-			paramValues[0]=serv.comprobante;		//compr
-			paramValues[1]=aux_nummed;				//medidor
-			paramValues[2]=serv.prefijo;   			//prefijo
-			paramValues[3]=serv.numero;				//numero
-			paramValues[4]=serv.abonado;			//abonado
-			
-			res = PQexecParams(conn,
-						"DELETE FROM pendientes WHERE compr=$1 OR medidor=$2 OR abonado=$5 OR 							(prefijo=$3 AND numero=$4);",
-						5,
+			if (strcmp(serv.codser,"001") == 0)
+			{
+				//eliminar aguas
+				paramValues[0] = serv.comprobante;
+				res = PQexecParams(conn,
+						"DELETE FROM pendientes WHERE compr=$1;",
+						1,
+						NULL,
+						paramValues,
+						NULL,
+						NULL,
+						0);
+				
+			}else if(strcmp(serv.codser,"002") == 0){
+				//eliminar fijo
+				paramValues[0] = serv.prefijo;
+				paramValues[1] = serv.numero;
+				sprintf(temp,"prefijo: %s\nnumero: %s\n",paramValues[0],paramValues[1]);
+				writelog(log_fd,temp);
+				res = PQexecParams(conn,
+						"DELETE FROM pendientes WHERE numero=$2 AND prefijo=$1;",
+						2,
+						NULL,
+						paramValues,
+						NULL,
+						NULL,
+						0);
+				
+			}else if(strcmp(serv.codser,"003") == 0){
+				//eliminar electricidad
+				paramValues[0] = aux_nummed;
+				
+				res = PQexecParams(conn,
+						"DELETE FROM pendientes WHERE medidor=$1;",
+						1,
 						NULL,
 						paramValues,
 						NULL,
 						NULL,
 						0);
 						
+				sprintf(temp,"intento eliminar electricidad con medidor: %s\n",paramValues[0]);
+				writelog(log_fd,temp);
+			}else if(strcmp(serv.codser,"004") == 0){
+				//eliminar movil
+				paramValues[0] = serv.prefijo;
+				paramValues[1] = serv.numero;
+				res = PQexecParams(conn,
+						"DELETE FROM pendientes WHERE (prefijo=$1 AND numero=$2);",
+						2,
+						NULL,
+						paramValues,
+						NULL,
+						NULL,
+						0);
+			}else if(strcmp(serv.codser,"005") == 0){
+				//eliminar cable
+				paramValues[0] = serv.abonado;
+				res = PQexecParams(conn,
+						"DELETE FROM pendientes WHERE abonado=$1;",
+						1,
+						NULL,
+						paramValues,
+						NULL,
+						NULL,
+						0);
+			}
+				
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
         		sprintf(temp,"delete command failed: %s", PQerrorMessage(conn));
