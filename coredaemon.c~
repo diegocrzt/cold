@@ -268,8 +268,10 @@ void limpiar_telnet(char * cadena)
 	
 	while(cadena[i] != '\0')
 	{
+		syslog(LOG_DEBUG,"'%c'\n",cadena[i]);
 		if(cadena[i] == '\015')
 		{
+			syslog(LOG_DEBUG,"Basura enviada generalmente por telnet\n");
 			cadena[i] = '\0';
 			break;
 		} 

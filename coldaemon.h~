@@ -96,7 +96,7 @@ int config_parser (char * config_file, int * puerto, int * threads, int * timeou
 */
 void * coredaemon(void * argumento);
 // Helper para limpiar el #015 que telnet envía como Retorno de Línea
-void limpiar_telnet(char * cadena);
+void limpiar_telnet(char * cadena)
 
 /*
 	Parser de patrones de entrada
