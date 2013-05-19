@@ -19,7 +19,6 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 	parametros[6] = vencimiento;
 	int entero = 0;
 	char temp[512];
-
 	res = PQexecParams(conn,
 						"SELECT * FROM pendientes WHERE (compr=$1 OR medidor=$2 OR abonado=$3 OR 							(numero=$4 AND prefijo=$5)) AND monto=$6 AND vencimiento>=$7;",
 						7,
@@ -35,55 +34,9 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 		writelog(log_fd,temp);
        	entero = 1;
     }
-    
-    
     PQclear(res);
 	return entero;
 }
-
-/*int coincide_monto(const char * monto, PGconn * conn, PGresult * res, int log_fd){
-	const char *parametros[1];
-	parametros[0] = monto;
-	int entero = 0;
-	char temp[512];
-	res = PQexecParams(conn, "SELECT * FROM pendientes WHERE monto=$1",
-						1,
-						NULL,
-						parametros,
-						NULL,
-						NULL,
-						0);
-	if (PQntuples(res) == 0)
-	{
-		sprintf(temp,"Los montos no coinciden\n");
-		writelog(log_fd,temp);
-		entero = 1;
-	}
-	PQclear(res);
-	return entero;
-}*/
-
-/*int no_vencio(const char * vencimiento, PGconn * conn, PGresult * res, int log_fd){
-	const char *parametros[1];
-	parametros[0] = vencimiento;
-	int entero = 0;
-	char temp[512];
-	res = PQexecParams(conn, "SELECT * FROM pendientes WHERE vencimiento<=$1",
-						1,
-						NULL,
-						parametros,
-						NULL,
-						NULL,
-						0);
-	if (PQntuples(res) == 0)
-	{
-		sprintf(temp,"Factura Vencida\n");
-		writelog(log_fd,temp);
-		entero = 1;
-	}
-	PQclear(res);
-	return entero;
-}*/
 
 int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_fd){
 	const char *parametros[1];
@@ -115,15 +68,15 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	PGresult   	*res;
     
   	const char *paramValues[14];
+  	const char *paramValues2[14]; //utilizado para comandos de eliminacion
     int         paramLengths[14];
     int         paramFormats[14];
-    int			t,f;              
+    int			t,f,tuples;              
 	char aux_monto[512];
 	char aux_nummed[512];
 	char aux_numtran[512];
 	char aux_venc[512];
 	char aux_verificador[2];
-	
 	
 	conninfo = "dbname = coldaemon";
 	
@@ -148,29 +101,28 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[9] = aux_numtran;
 	paramValues[10] = serv.fechahora;
 	paramValues[11] = usuario;
-	
 	paramValues[12] = "20131212235959";
+	paramValues[13] = operacion;
 	/*strcpy(aux_venc,serv.vencimiento);
 	strcat(aux_venc,"235959");
 	paramValues[12] = aux_venc;*/
 	
 	sprintf(temp,"ENTRO A db_module\n");
 	writelog(log_fd,temp);
-	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %d\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed);
+	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %d\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento);
 	writelog(log_fd,temp);
 	
-    // Se realiza la conexión a la base de datos
+	// Se realiza la conexión a la base de datos
     conn = PQconnectdb(conninfo);
-
-    // Se chequea si la conexión backend ha sido establecida
+	
+	// Se chequea si la conexión backend ha sido establecida
     if (PQstatus(conn) != CONNECTION_OK)
     {
         sprintf(temp, "Connection to database failed: %s",
-                PQerrorMessage(conn));
-	writelog(log_fd,temp);
+        PQerrorMessage(conn));
+		writelog(log_fd,temp);
         exit_nicely(conn);
     }
-	
 	//INICIO DE OPERACIONES EN LA BASE DE DATOS
 	if(strcmp(operacion, "col") == 0){
 		/*
@@ -180,15 +132,13 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 		if(existe_factura(paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd) == 0){
 			//insertar registro en la tabla de pagadas
 			res = PQexecParams(conn,
-                       "INSERT INTO Pagadas VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
+                       "INSERT INTO pagadas VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
                        13,       // 13 parametros
                        NULL,    // let the backend deduce param type
                        paramValues,
                        NULL,    // don't need param lengths since text
                        NULL,    // default to all text params
                        0);      // ask for non binary results
-                       
-              
             if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
         		sprintf(temp,"insert command failed: %s", PQerrorMessage(conn));
@@ -199,77 +149,72 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		sprintf(temp,"Insert ejecutado\n");
 			writelog(log_fd,temp);
 			PQclear(res);
-			
 			//eliminar registro de la tabla pendientes
 			//asignar valores a paramValues (si! hace falta)
 			if (strcmp(serv.codser,"001") == 0)
 			{
 				//eliminar aguas
-				paramValues[0] = serv.comprobante;
+				paramValues2[0] = serv.comprobante;
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE compr=$1;",
 						1,
 						NULL,
-						paramValues,
+						paramValues2,
 						NULL,
 						NULL,
 						0);
-				
 			}else if(strcmp(serv.codser,"002") == 0){
 				//eliminar fijo
-				paramValues[0] = serv.prefijo;
-				paramValues[1] = serv.numero;
+				paramValues2[0] = serv.prefijo;
+				paramValues2[1] = serv.numero;
 				sprintf(temp,"prefijo: %s\nnumero: %s\n",paramValues[0],paramValues[1]);
 				writelog(log_fd,temp);
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE numero=$2 AND prefijo=$1;",
 						2,
 						NULL,
-						paramValues,
+						paramValues2,
 						NULL,
 						NULL,
 						0);
-				
 			}else if(strcmp(serv.codser,"003") == 0){
 				//eliminar electricidad
-				paramValues[0] = aux_nummed;
+				paramValues2[0] = aux_nummed;
 				
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE medidor=$1;",
 						1,
 						NULL,
-						paramValues,
+						paramValues2,
 						NULL,
 						NULL,
 						0);
-						
-				sprintf(temp,"intento eliminar electricidad con medidor: %s\n",paramValues[0]);
+				sprintf(temp,"intento eliminar electricidad con medidor: %s\n",paramValues2[0]);
 				writelog(log_fd,temp);
 			}else if(strcmp(serv.codser,"004") == 0){
 				//eliminar movil
-				paramValues[0] = serv.prefijo;
-				paramValues[1] = serv.numero;
+				paramValues2[0] = serv.prefijo;
+				paramValues2[1] = serv.numero;
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE (prefijo=$1 AND numero=$2);",
 						2,
 						NULL,
-						paramValues,
+						paramValues2,
 						NULL,
 						NULL,
 						0);
 			}else if(strcmp(serv.codser,"005") == 0){
 				//eliminar cable
-				paramValues[0] = serv.abonado;
+				paramValues2[0] = serv.abonado;
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE abonado=$1;",
 						1,
 						NULL,
-						paramValues,
+						paramValues2,
 						NULL,
 						NULL,
 						0);
 			}
-				
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
         		sprintf(temp,"delete command failed: %s", PQerrorMessage(conn));
@@ -280,8 +225,25 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		sprintf(temp,"Delete ejecutado\n");
 			writelog(log_fd,temp);
 			PQclear(res);
+			//agregar a transacciones
+    		res = PQexecParams(conn,
+                       "INSERT INTO transacciones VALUES ($14,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
+                       14,       // 14 parametros
+                       NULL,    // let the backend deduce param type
+                       paramValues,
+                       NULL,    // don't need param lengths since text
+                       NULL,    // default to all text params
+                       0);      // ask for non binary results
+			
+			if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    		{
+        		sprintf(temp,"fallo de envio a transaccion col: %s", PQerrorMessage(conn));
+				writelog(log_fd,temp);
+        		PQclear(res);
+        		exit_nicely(conn);
+    		}
+    		PQclear(res);
 		}
-		
 	}else if(strcmp(operacion, "rev") == 0){
 	
 		if(existe_trx(paramValues[9],conn,res,log_fd) == 0){
@@ -294,8 +256,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			*	para asignar un id antes del resto
 			*/
 			
-			res = PQexec(conn,"INSERT INTO pendientes 		(cod_serv,tipo,compr,monto,vencimiento,dig_verif,prefijo,numero,medidor,abonado) SELECT cod_serv,tipo,compr,monto,vencimiento,dig_verif,prefijo,numero,medidor,abonado	FROM pagadas");
-			
+			res = PQexec(conn,"INSERT INTO pendientes 		(cod_serv,tipo,compr,monto,vencimiento,dig_verif,prefijo,numero,medidor,abonado) SELECT cod_serv,tipo,compr,monto,vencimiento,dig_verif,prefijo,numero,medidor,abonado	FROM pagadas;");
 			
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
@@ -308,12 +269,12 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			//borrar de pagadas
 			sprintf(temp,"borrando de pagadas\n");
 			writelog(log_fd,temp);
-			paramValues[0] = aux_numtran;
+			paramValues2[0] = aux_numtran;
 			res = PQexecParams(conn,
                        "DELETE FROM pagadas WHERE transaccion=$1;",
                        1,       // 1 parametro
                        NULL,    // let the backend deduce param type
-                       paramValues,
+                       paramValues2,
                        NULL,    // don't need param lengths since text
                        NULL,    // default to all text params
                        0);      // ask for non binary results
@@ -325,15 +286,33 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
         		PQclear(res);
         		exit_nicely(conn);
     		}
+    		
+    		//agregar a transacciones
+    		res = PQexecParams(conn,
+                       "INSERT INTO transacciones VALUES ($14,0,0,0,0,0,0,0,0,0,0,0,$12,0);",
+                       14,       // 13 parametros
+                       NULL,    // let the backend deduce param type
+                       paramValues,
+                       NULL,    // don't need param lengths since text
+                       NULL,    // default to all text params
+                       0);      // ask for non binary results
+			
+			if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    		{
+        		sprintf(temp,"fallo de envio a transaccion: %s", PQerrorMessage(conn));
+				writelog(log_fd,temp);
+        		PQclear(res);
+        		exit_nicely(conn);
+    		}
+    		PQclear(res);
 		}
-	
 	}else if(strcmp(operacion, "lastrx") == 0){
-		paramValues[0] = usuario;
+		paramValues2[0] = usuario;
 		int retorno = 0;
-		res = PQexecParams(conn, "SELECT * FROM pagadas WHERE usuario=$1",
+		res = PQexecParams(conn, "SELECT * FROM transacciones WHERE usuario=$1;",
 						1,
 						NULL,
-						paramValues,
+						paramValues2,
 						NULL,
 						NULL,
 						0);
@@ -344,7 +323,10 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			retorno = 1;
 		}else{
 			resp[0] = '\0';
-			for (t = 0; t < PQntuples(res) && t < 3; t++)
+			tuples = PQntuples(res) - 3;
+			if (PQntuples(res) < 3)
+				tuples = 0;
+			for(t = tuples; t < PQntuples(res); t++)
 			{
 				for (f = 0; f < PQnfields(res); f++)
 				{
@@ -358,17 +340,32 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 				writelog(log_fd,temp);
 			}
 		}
-		
 		PQclear(res);
-		
+		//agregar a transacciones
+		/*
+		*	Se podria guardar la fecha/hora del sistema
+		*/
+    	res = PQexecParams(conn,
+        	"INSERT INTO transacciones VALUES ($14,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
+           	14,       // 13 parametros
+            NULL,    // let the backend deduce param type
+            paramValues,
+            NULL,    // don't need param lengths since text
+            NULL,    // default to all text params
+            0);      // ask for non binary results
+			
+			if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    		{
+        		sprintf(temp,"fallo de envio a transaccion: %s", PQerrorMessage(conn));
+				writelog(log_fd,temp);
+        		PQclear(res);
+        		exit_nicely(conn);
+    		}
+    		PQclear(res);
 	}else if(strcmp(operacion, "close") == 0){
-	
 	}else if(strcmp(operacion, "help") == 0){
-	
 	}
-		
-	// Se cierra la conexión a la base de datos
+	//Se cierra la conexión a la base de datos
     PQfinish(conn);
-
-    return 0;
+	return 0;
 }
