@@ -26,17 +26,36 @@
 	
 */
 
+// Definiciones
+#define STR_LEN 512
+#define PKG_LEN 16384
+
 //Estructuras de datos
+struct thread_list
+{
+	pthread_t hilo;
+	int thread_index;
+	struct thread_list * siguiente;
+};
+
 typedef struct
 {
-	int thread_index;
-	int address_size; //Socket Address Structure size
-	int socket_descriptor;
-	struct sockaddr_in socket;
-	int log_fd;
-	char * acl_file;
-	int timeout;
+	int threads; // cantidad de hilos (thread manager)
+	int puerto; // puerto de escucha
+	char acl[STR_LEN]; // lista de control de acceso
+	char log[STR_LEN]; // bitácora del demonio
+	int timeout; // tiempo límite de espera
+	struct thread_list * lista_hilo; // hilos en ejecución
+	int thread_index; // identificador de hilo (thread worker)
+	int socket_descriptor; // descriptor de socket (thread worker)
+	struct sockaddr_in socket; // estructura socket (thread worker)
 } thread_arg;
+
+struct parameters
+{
+	thread_arg arg;
+	struct parameters * siguiente;
+};
 
 typedef struct 
 {
@@ -55,7 +74,7 @@ typedef struct
 	char *mensaje; //20 CARACTERES DE MENSAJE
 }SERVICIO;
 
-char * ready;
+int ready;
 
 // Biblioteca de Funciones de:
 // Hash, postgres, semaforos
@@ -64,6 +83,8 @@ char * ready;
 #define ARGUMENTOS_INVALIDOS 1
 #define NO_CONFIG_FILE 2
 #define INVALID_CONFIG_FILE 3
+#define CANT_OPEN_ACL 13
+#define LOG_ERROR 11
 #define SOCK_DESCRIPTOR_ERROR 4
 #define BINDING_ERROR 5 
 #define LISTENNING_ERROR 6
@@ -71,7 +92,7 @@ char * ready;
 #define CANT_FORK 8
 #define SESSION_ERROR 9
 #define CHDIR_ERROR 10
-#define LOG_ERROR 11
+#define CONFIG_ERROR 12
 
 /*
 	acl_file es un puntero al nombre del fichero que tiene los datos de autenticación
@@ -102,7 +123,6 @@ void * coredaemon(void * argumento);
 char col_parser (SERVICIO *servicio, char * patron);
 char rev_parser (SERVICIO *reversa, char * patron);
 
-
 /*
 	Módulo de Base de Datos
 */
@@ -113,3 +133,18 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 */
 void writelog(int log_fd, const char * mensaje);
 
+/*
+	Administrador de Hilos
+*/
+void * thread_manager(void * argumento);
+
+/*
+	Módulo de Configuración
+*/
+char config_module(char * config_file, thread_arg * argumento);
+void dbg_print_thread_arg(thread_arg * argumento);
+
+/*
+	Pequeño gestor de señales
+*/
+void signal_handler(void);

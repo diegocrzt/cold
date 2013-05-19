@@ -1,235 +1,135 @@
 #include "coldaemon.h"
-#include <syslog.h>
 #include <pthread.h>
 
 int main(int argc, char * argv[])
 {
 	char * config_file;
 	pid_t pid, sid;
-	int puerto;
-	int threads;
-	int timeout;
 	char * logpath;
 	char * logfile;
-	char log[512];
-	char acl_file[512];
 	char * aclpath;
 	char * aclfile;
-	struct sockaddr_in sin;
-	struct sockaddr_in pin;
-	int sock_descriptor;
-	int temp_sock_descriptor;
-	int address_size;
-	char buf[16384];
-	char printBuffer[512];
+	char buf[PKG_LEN];
+	char printBuffer[STR_LEN];
 	int i, len, log_fd, ret, j;
-	pthread_t * hilo;
-	thread_arg  * argumento;
+	pthread_t manager;
+	thread_arg  argumento;
 	int create_thread_value;
 	char flag_asignado_hilo;
 	FILE * temp_file;
+	ready = 0;
 
+	// Validación de Argumentos, debe haber un argumento que especifique
+	// el fichero de configuración del demonio
 	if(argc != 2)
 	{
-		// Rutina para loggear errores
-		syslog(LOG_ERR,"Se requiere un fichero de configuración\n");
+		syslog(LOG_ERR,"Se necesita el fichero de configuración\n");
 		return ARGUMENTOS_INVALIDOS;
 	}
 
+	// fichero de configuración de los parámetros del demonio
 	config_file = argv[1];
-
-	// Implentar parser de archivo de configuración
-	// y configurar los parámetros del demonio
-
-	if( ret = config_parser(config_file, &puerto, &threads, &timeout, &logpath, &logfile, &aclpath, &aclfile)){
-		syslog(LOG_ERR,"Fichero de configuración inválido\n");
-		return ret;
+	// MODULO DE CONFIGURACION	
+	if( (ret = config_module(config_file, &argumento)) != 0)
+	{
+		syslog(LOG_ERR,"Error con los parámetros de configuración config_module\n",ret);
+		return CONFIG_ERROR;
 	}
-	// REMEBER TO FREE MEMORY OF POINTER POINTER
-	pid = fork();
 	
+		
+	// Creando el proceso huérfano y terminando el proceso padre
+	pid = fork();
 	if(pid < 0)
 	{
-		// log erros 
 		syslog(LOG_ERR,"No se puede crear proceso hijo\n");
 		return CANT_FORK;
 	}
-
 	if(pid > 0)
 	{
-		syslog(LOG_DEBUG,"Este proceso ha creado un zombie\n");
+		syslog(LOG_DEBUG,"Terminando el proceso padre, proceso huerfano creado\n");
 		return OK;
 	}
 
+	// Convirtiendo al huérfano en lider de la sesión
 	sid = setsid();
-
 	if(sid < 0)
 	{
 		syslog(LOG_ERR,"No se puede crear la sesión\n");
 		return SESSION_ERROR;
 	}
 
+	//Cambiando al directorio / como directorio de trabajo
 	if( (chdir("/")) < 0)
 	{
 		syslog(LOG_ERR,"No se puede cambiar de directorio\n");
 		return CHDIR_ERROR;
 	}
 
+	// Cambiando Mascara 
 	umask(0);
-
+	// Cerrando descriptores estándard
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
 
 	openlog("cold", LOG_PID, LOG_DAEMON);
-	syslog(LOG_INFO,"Cobros On Line\n");
-	
-	syslog(LOG_ERR," Copiando a acl_file, '%s' '%s'\n",aclpath,aclfile);
-	strcpy(acl_file,aclpath);
-	strcat(acl_file,aclfile);
-	syslog(LOG_ERR," Copiado a acl_file, '%s'\n",acl_file);
-	free(aclpath);
-	free(aclfile);
-	syslog(LOG_ERR," REMEMBER TO FREE POINTERS\n");
-	if( ( temp_file  = fopen(acl_file, "r") ) == NULL )
-	{
-		syslog(LOG_ERR,"No existe el archivo %s o no se puede abrir\n",acl_file);
-		return -1;// CODIGO DE ERROR, DEFINIR
-	}
-	fclose(temp_file); // Solo para determinar si el fichero existe y se puede abrir
+	syslog(LOG_INFO,"Cobros On Line Daemon\n");
 
+	/*
 	hilo = (pthread_t *) malloc(sizeof(pthread_t) * threads);
 	argumento = (thread_arg *)malloc(sizeof(thread_arg) * threads);
 	ready = (char *)calloc(threads, sizeof(char));
+	*/
+	/*	
 	for(i = 0; i < threads; i++)
 	{
 		ready[i] = 1;
 	}
-	
-	strcpy(log,logpath);
-	strcat(log,logfile);
-	free(logpath);//HERE FREE THE POINTER POINTER
-	free(logfile);
-	syslog(LOG_DEBUG,"Abriendo el log %s\n", log);
-	if( (log_fd = open(log, O_CREAT | O_WRONLY | O_APPEND, 0666)) < 0 )
-	{
-		syslog(LOG_ERR,"No se puede abrir el fichero %s (%d)\n",log, log_fd);
-		return LOG_ERROR;
-	}
-	strcpy(printBuffer,"coldaemon become a full daemon\n");
-	write(log_fd, printBuffer, strlen(printBuffer));
-
-	// Implementar Sockets
-
-	sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-	if( sock_descriptor == -1)
-	{
-		// log erros
-		syslog(LOG_ERR,"No se puede crear el descriptor del socket\n");
-		exit(SOCK_DESCRIPTOR_ERROR);
-	}
-
-	bzero(&sin, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = INADDR_ANY;
-	sin.sin_port = htons(puerto);
-
-	if( bind(sock_descriptor, (struct sockaddr *)&sin, sizeof(sin)) == -1 )
-	{
-		// log errors
-		syslog(LOG_ERR,"No se puede abrir el puerto %d\n",puerto);
-		exit(BINDING_ERROR);
-	}
-
-	if( listen(sock_descriptor, threads) == -1 )
-	{
-		// log error
-		syslog(LOG_ERR,"No se puede escuchar en el puerto %d\n",puerto);
-		exit(LISTENNING_ERROR);
-	}
-	
-	// registrar que el servidor ya puede aceptar conexiones
-	
+	*/
 	i = 0;
-
 	while(1)
 	{
-		temp_sock_descriptor = accept(sock_descriptor, (struct sockaddr *)& pin, &address_size);
-		if( temp_sock_descriptor == -1 )
-		{
-			// log error
-			syslog(LOG_ERR,"No se puede aceptar la conexión\n");
-
-			exit(ACCEPT_CONNECTION_ERROR);
-		}
-		strcpy(printBuffer,"Conexión Entrante\n");
-		write(log_fd, printBuffer, strlen(printBuffer));
-
-		syslog(LOG_DEBUG,"threads = %d\n",threads);
-		for(i = 0; i < threads; i++)
-		{
-			syslog(LOG_DEBUG,"Verificando Hilo  = %d\n",i);
-			for(j = 0; j < threads; j++)
-			{
-				sprintf(printBuffer,"%d ",ready[j]);
-				write(log_fd, printBuffer, strlen(printBuffer));
-			}
-			sprintf(printBuffer,"\n");
-			write(log_fd, printBuffer, strlen(printBuffer));
-			if( ready[i] )
-			{
-				syslog(LOG_DEBUG,"hilo %d disponible\n",i);
-				flag_asignado_hilo = 1;
-				ready[i] = 0;
-				argumento[i].thread_index = i;
-				argumento[i].address_size = address_size;
-				argumento[i].socket_descriptor = temp_sock_descriptor;	
-				argumento[i].socket = pin;
-				argumento[i].log_fd = log_fd;
-				argumento[i].acl_file = acl_file;
-				argumento[i].timeout = timeout;
-				create_thread_value = pthread_create(&hilo[i],NULL, coredaemon, (void *) &argumento[i]); 
-				syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
-				syslog(LOG_DEBUG,"Usando Hilo %d\n",i);
-				break;
-			}
-			for(j = 0; j < threads; j++)
-			{
-				sprintf(printBuffer,"%d ",ready[j]);
-				write(log_fd, printBuffer, strlen(printBuffer));
-			}
-			sprintf(printBuffer,"\n");
-			write(log_fd, printBuffer, strlen(printBuffer));
-			
-		}
-
-		if(!flag_asignado_hilo)
-		{
-			// Rechazar la conexión
-			sprintf(printBuffer,"El servidor no acepta más conexiones en este momento\nPor favor aguarde un momento y reintente conectarse nuevamente\n");
-			if(send(temp_sock_descriptor, printBuffer, strlen(printBuffer), 0) == -1)
-			{
-				syslog(LOG_ERR,"Error al informar que ya no se aceptan más conexiónes\n");
-			}
-			strcpy(printBuffer, "No hay hilos disponibles\n");
-			write(log_fd, printBuffer, strlen(printBuffer));
-			close(temp_sock_descriptor);
-		}
-		flag_asignado_hilo = 0;
-		if( i == threads)
-		{
-			i = 0;
-		}
+		signal_handler();
+		pthread_create(&manager,NULL, thread_manager, (void *) &argumento); 
+		sleep(1);
 	}
-	/*
-		Incomplete Implementation
-	*/
 	
-		
+	return OK;
+}
 
-	// Implementar Hilos
+void signal_handler(void)
+{
+	sigset_t sigset;
+	struct sigaction action;
 
-	// Implementar las Señales
-	
-	return 0;
+	sigemptyset(&sigset); /* Inicializa el conjunto de señales */
+	sigaddset(&sigset, SIGHUP); /* Reload Config file */
+	sigaddset(&sigset, SIGTERM); /* Parar el demonio */
+	sigprocmask(SIG_BLOCK, &sigset, NULL); /* Bloqueamos las señales */
+	sigpending(&sigset); /* Comprueba las señales pendientes */
+	if(sigismember(&sigset, SIGHUP)) {
+	    syslog(LOG_INFO, "SIGHUP\n");
+	    /* Ignora SIGHUP */
+	    sigemptyset(&action.sa_mask);
+	    action.sa_handler = SIG_IGN;
+	    sigaction(SIGHUP, &action, NULL);
+	    /*
+			MODULO DE CONFIGURACIÓN
+		*/
+	    /* Desbloquea SIGHUP */
+	    sigprocmask(SIG_UNBLOCK, &sigset, NULL);
+	}
+	if(sigismember(&sigset, SIGTERM)) {
+	    syslog(LOG_INFO, "SIGTERM\n");
+	    /* Ignora SIGHUP */
+	    sigemptyset(&action.sa_mask);
+	    action.sa_handler = SIG_IGN;
+	    sigaction(SIGTERM, &action, NULL);
+	    /*
+			Parar el demonio
+		*/
+	    /* Desbloquea SIGHUP */
+	    sigprocmask(SIG_UNBLOCK, &sigset, NULL);
+	}
+	return;
 }
