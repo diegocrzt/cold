@@ -92,9 +92,9 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[4] = aux_verificador;
 	paramValues[5] = serv.prefijo;
 	paramValues[6] = serv.numero;
-	sprintf(aux_nummed,"%d",serv.nummed);
+	//sprintf(aux_nummed,"%d",serv.nummed);
 	//strcpy(paramValues[7],temp);
-	paramValues[7] = aux_nummed;
+	paramValues[7] = serv.nummed;
 	paramValues[8] = serv.abonado;
 	sprintf(aux_numtran,"%d",serv.numtran);
 	//strcpy(paramValues[9],temp);
