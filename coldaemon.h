@@ -93,6 +93,7 @@ int ready;
 #define SESSION_ERROR 9
 #define CHDIR_ERROR 10
 #define CONFIG_ERROR 12
+#define NULL_THREAD 14
 
 /*
 	acl_file es un puntero al nombre del fichero que tiene los datos de autenticación
@@ -134,6 +135,9 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	UTILERIA GENERAL
 */
 void writelog(int log_fd, const char * mensaje);
+void thread_add(struct thread_list **lista, int index);
+pthread_t * thread_get(struct thread_list *lista, int index);
+void thread_del(struct thread_list **lista, int index);
 
 /*
 	Administrador de Hilos
@@ -150,3 +154,4 @@ void dbg_print_thread_arg(thread_arg * argumento);
 	Pequeño gestor de señales
 */
 void signal_handler(void);
+

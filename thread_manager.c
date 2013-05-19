@@ -17,6 +17,7 @@ void * thread_manager(void * argumento)
 	int address_size;
 	char buf[PKG_LEN];
 	int create_thread_value;
+	int ret;
 	thread_arg * arg_for_thread = NULL;
 
 	syslog(LOG_DEBUG,"Abriendo el fichero %s para bitácora\n", log);
@@ -41,7 +42,8 @@ void * thread_manager(void * argumento)
 	sin.sin_addr.s_addr = INADDR_ANY;
 	sin.sin_port = htons(puerto);
 
-	if( bind(sock_descriptor, (struct sockaddr *)&sin, sizeof(sin)) == -1 )
+
+	if( (ret = bind(sock_descriptor, (struct sockaddr *)&sin, sizeof(sin))) == -1 )
 	{
 		syslog(LOG_ERR,"No se puede usar el puerto %d\n",puerto);
 		exit(BINDING_ERROR);
@@ -75,12 +77,13 @@ void * thread_manager(void * argumento)
 			arg_for_thread = (thread_arg *)malloc(sizeof(thread_arg));
 
 			*arg_for_thread = arg;
+
 			arg_for_thread->thread_index = ready;
 			arg_for_thread->socket_descriptor = temp_sock_descriptor;
 			arg_for_thread->socket = pin;
 
-			thread_add(arg_for_thread->lista_hilo, ready);
-			create_thread_value = pthread_create(thread_get(arg_for_thread->lista_hilo,ready+1),NULL, coredaemon, (void *) arg_for_thread); 
+			thread_add(&(arg_for_thread->lista_hilo), ready);
+			create_thread_value = pthread_create(thread_get(arg_for_thread->lista_hilo,ready),NULL, coredaemon, (void *) arg_for_thread); 
 
 			syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
 			syslog(LOG_DEBUG,"Usando Hilo %d\n",ready);

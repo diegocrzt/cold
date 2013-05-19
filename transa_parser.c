@@ -9,7 +9,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 	int entero; //entero auxiliar
 	int biciesto = 0; //booleano de año biciesto
 	//Asignar el tamaño de codigo de servicio
-	auxiliar = (char *) malloc(sizeof(char)*3);
+	auxiliar = (char *) calloc(sizeof(char),3);
 	//char patron[] = "0011234562013121216321500112345678912000000100000201312127\n";
 	int index = 0;
 	char tmp[512];
@@ -28,14 +28,14 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 	tipo = atoi(string+2);	//definir el tipo de servicio
 	//printf("Tipo:%d\n",tipo);
 	
-	servicio->codser = (char *)malloc(sizeof(char)*3); //Asignar tamaño al codigo de servicio
+	servicio->codser = (char *)calloc(sizeof(char),3); //Asignar tamaño al codigo de servicio
 	strcpy(servicio->codser, auxiliar); // Asignar el valor del auxiliar al codigo de servicio
 	//printf("Auxiliar: %s\n", auxiliar);
 	//printf("codser: %s\n", servicio->codser);
 	free(auxiliar); //liberar el auxiliar
 
 	//establecer el tamaño del auxiliar al de transaccion
-	auxiliar = (char *)malloc(sizeof(char)*6);
+	auxiliar = (char *)calloc(sizeof(char),6);
 	
 	//establecer el numero de transaccion
 	for(contcar=0 ; contcar <=5; contcar++)
@@ -50,10 +50,10 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 	//printf("numtran: %d\n", servicio->numtran);
 
 	//Asignar el tamaño del auxiliar a fechahora
-	auxiliar = (char *)malloc(sizeof(char)*14);
+	auxiliar = (char *)calloc(sizeof(char),14);
 
 	//Asignar el tamano del fecharhora del Servicio
-	servicio->fechahora = (char *)malloc(sizeof(char)*14);
+	servicio->fechahora = (char *)calloc(sizeof(char),14);
 
 	//establecer la fecha de la transaccion
 		for(contcar=0 ; contcar<=13; contcar++)
@@ -124,10 +124,10 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 			
 			case 1:
 				//Asignar recursos al tipo de factura
-				servicio->tipofact = (char *)malloc(sizeof(char)*3);
+				servicio->tipofact = (char *)calloc(sizeof(char),3);
 				
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*3);
+				auxiliar = (char *)calloc(sizeof(char),3);
 				
 				//printf("Agua\n");
 				for(contcar = 0; contcar <= 2; contcar++)
@@ -145,9 +145,9 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				
 
 				//Asignar recursos al comprobante
-				servicio->comprobante = (char *)malloc(sizeof(char)*11);
+				servicio->comprobante = (char *)calloc(sizeof(char),11);
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*11);
+				auxiliar = (char *)calloc(sizeof(char),11);
 
 				for(contcar = 0; contcar <= 10; contcar++)
 				{
@@ -164,7 +164,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				
 				
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*12);
+				auxiliar = (char *)calloc(sizeof(char),12);
 				
 				for(contcar = 0; contcar <= 11; contcar++)
 				{
@@ -180,9 +180,9 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//printf("Monto: %d\n", servicio->monto);
 				
 				//Asignar recursos a Vencimiento
-				servicio->vencimiento = (char *)malloc(sizeof(char)*8);
+				servicio->vencimiento = (char *)calloc(sizeof(char),8);
 				//Asignar recursos a Auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*8);
+				auxiliar = (char *)calloc(sizeof(char),8);
 				//Establecer que NO es año biciesto
 				
 				for(contcar = 0; contcar <= 7; contcar++)
@@ -256,27 +256,30 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//printf("Telefono Fijo\n");
 			
 				//Asignar recursos al prefijo
-				servicio->prefijo = (char *)malloc(sizeof(char)*4);
+				servicio->prefijo = (char *)calloc(sizeof(char),4);
 
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*4);
-
-				for(contcar = 0; contcar <= 3; contcar++)
-				{
+				auxiliar = (char *)calloc(sizeof(char),4);
+				string[23] = patron[index++];				
+				strcpy(auxiliar,string+23);
+				for(contcar = 1; contcar <= 3; contcar++)
+				{	
 					string[23+contcar] = patron[index++];
 					strcat(auxiliar, string+23+contcar);
 				}
 				
 				//Asignar el prefijo
 				strcpy(servicio->prefijo, auxiliar);
+				sprintf(tmp,"prefijOO parser: %s\n",auxiliar);
+				writelog(log_fd,tmp);
+				
 				//Liberar el auxiliar
-				//printf("Auxiliar: %s\n", auxiliar);
 				free(auxiliar);
 				//printf("Prefijo: %s\n", servicio->prefijo);
 				//Asignar recursos al numero
-				servicio->numero = (char *)malloc(sizeof(char)*7);
+				servicio->numero = (char *)calloc(sizeof(char),7);
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*7);
+				auxiliar = (char *)calloc(sizeof(char),7);
 
 				for(contcar = 0; contcar <= 6; contcar++)
 				{
@@ -287,12 +290,13 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//Asignar el numero
 				strcpy(servicio->numero, auxiliar);
 				//Liberar el auxiliar
-				//printf("Auxiliar: %s\n", auxiliar);
+				sprintf(tmp,"numero parser: %s\n",auxiliar);
+				writelog(log_fd,tmp);
 				free(auxiliar);
 				//printf("Numero: %s\n", servicio->numero);
 
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*12);
+				auxiliar = (char *)calloc(sizeof(char),12);
 				
 				for(contcar = 0; contcar <= 11; contcar++)
 				{
@@ -309,18 +313,17 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 
 				servicio->comprobante = "0";
 				servicio->abonado = "0";
-				servicio->nummed = 0;
+				servicio->nummed = "0";
 				servicio->mensaje = "0";
 				servicio->tipofact = "0";
 				servicio->vencimiento = "0";
 				servicio->verificador = 0;
-				servicio->prefijo = "0";
 				break;
 			case 3:
 				//printf("Suministro Electrico\n");
 				//Asignar recursos al auxiliar
-				servicio->nummed = (char *)malloc(sizeof(char)*12);
-				auxiliar = (char *)malloc(sizeof(char)*12);
+				servicio->nummed = (char *)calloc(sizeof(char),12);
+				auxiliar = (char *)calloc(sizeof(char),12);
 				
 				for(contcar = 0; contcar <= 14; contcar++)
 				{
@@ -341,7 +344,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//printf("Numero de Medidor: %d\n", servicio->nummed);
 				
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*12);
+				auxiliar = (char *)calloc(sizeof(char),12);
 				
 				for(contcar = 0; contcar <= 11; contcar++)
 				{
@@ -367,9 +370,9 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 			case 4:
 				//printf("Telefono Movil\n");
 				//Asignar recursos al prefijo
-				servicio->prefijo = (char *)malloc(sizeof(char)*4);
+				servicio->prefijo = (char *)calloc(sizeof(char),4);
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*4);
+				auxiliar = (char *)calloc(sizeof(char),4);
 
 				for(contcar = 0; contcar <= 3; contcar++)
 				{
@@ -380,14 +383,15 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//Asignar el prefijo
 				strcpy(servicio->prefijo, auxiliar);
 				//Liberar el auxiliar
-				//printf("Auxiliar: %s\n", auxiliar);
+				sprintf(tmp,"prefijo parser: %s\n",auxiliar);
+				writelog(log_fd,tmp);
 				free(auxiliar);
 				//printf("Prefijo: %s\n", servicio->prefijo);
 
 				//Asignar recursos al numero
-				servicio->numero= (char *)malloc(sizeof(char)*6);
+				servicio->numero= (char *)calloc(sizeof(char),6);
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*6);
+				auxiliar = (char *)calloc(sizeof(char),6);
 
 				for(contcar = 0; contcar <= 5; contcar++)
 				{
@@ -398,12 +402,13 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//Asignar el numero
 				strcpy(servicio->numero, auxiliar);
 				//Liberar el auxiliar
-				//printf("Auxiliar: %s\n", auxiliar);
+				sprintf(tmp,"numero parser: %s\n",auxiliar);
+				writelog(log_fd,tmp);
 				free(auxiliar);
 				//printf("Numero: %s\n", servicio->numero);
 
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*12);
+				auxiliar = (char *)calloc(sizeof(char),12);
 				
 				for(contcar = 0; contcar <= 11; contcar++)
 				{
@@ -429,9 +434,9 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//printf("Cable TV\n");
 
 				//Asignar recursos al comprobante
-				servicio->abonado = (char *)malloc(sizeof(char)*9);
+				servicio->abonado = (char *)calloc(sizeof(char),9);
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*9);
+				auxiliar = (char *)calloc(sizeof(char),9);
 
 				for(contcar = 0; contcar <= 8; contcar++)
 				{
@@ -447,7 +452,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//printf("Abonado: %s\n", servicio->abonado);
 
 				//Asignar recursos al auxiliar
-				auxiliar = (char *)malloc(sizeof(char)*12);
+				auxiliar = (char *)calloc(sizeof(char),12);
 				
 				for(contcar = 0; contcar <= 11; contcar++)
 				{
@@ -489,7 +494,7 @@ char rev_parser(SERVICIO *servicio, char * patron)
 	//char patron[] = "00512345620131212163215Factura incorrecta.\n";
 	int index = 0;
 	//Asignar el tamaño de codigo de servicio
-	auxiliar = (char *) malloc(sizeof(char)*3);
+	auxiliar = (char *) calloc(sizeof(char),3);
 	
 	//establecer el rubro de transaccion
 	for(contcar=0 ; contcar <=2; contcar++)
@@ -501,14 +506,14 @@ char rev_parser(SERVICIO *servicio, char * patron)
 	}	
 	//****CONTROLAR QUE TIPO SEA UN NUMERO VALIDO DE SERVICIO***** SI NO ES VALIDO SALIR!!
 
-	servicio->codser = (char *)malloc(sizeof(char)*3); //Asignar tamaño al codigo de servicio
+	servicio->codser = (char *)calloc(sizeof(char),3); //Asignar tamaño al codigo de servicio
 	strcpy(servicio->codser, auxiliar); // Asignar el valor del auxiliar al codigo de servicio
 	//printf("Auxiliar: %s\n", auxiliar);
 	//printf("codser: %s\n", servicio->codser);
 	free(auxiliar); //liberar el auxiliar
 
 	//establecer el tamaño del auxiliar al de transaccion
-	auxiliar = (char *)malloc(sizeof(char)*6);
+	auxiliar = (char *)calloc(sizeof(char),6);
 	
 	//establecer el numero de transaccion
 	for(contcar=0 ; contcar <=5; contcar++)
@@ -523,10 +528,10 @@ char rev_parser(SERVICIO *servicio, char * patron)
 	//printf("numtran: %d\n", servicio->numtran);
 
 	//Asignar el tamaño del auxiliar a fechahora
-	auxiliar = (char *)malloc(sizeof(char)*14);
+	auxiliar = (char *)calloc(sizeof(char),14);
 
 	//Asignar el tamano del fecharhora del Servicio
-	servicio->fechahora = (char *)malloc(sizeof(char)*14);
+	servicio->fechahora = (char *)calloc(sizeof(char),14);
 
 	//establecer la fecha de la transaccion
 	for(contcar=0 ; contcar<=13; contcar++)
@@ -591,7 +596,7 @@ char rev_parser(SERVICIO *servicio, char * patron)
 	free(auxiliar);
 	//printf("fechahora: %s\n", servicio->fechahora);
 	
-	auxiliar = (char *)malloc(sizeof(char)*20);
+	auxiliar = (char *)calloc(sizeof(char),20);
 	auxiliar[0] = '\0';
 	while((caracter[0] = patron[index++]) != '\n')
 	{
@@ -599,7 +604,7 @@ char rev_parser(SERVICIO *servicio, char * patron)
 	}
 	caracter[0] = '\0';
 	strcat(auxiliar, caracter);
-	servicio->mensaje = (char *)malloc(sizeof(char)*20);
+	servicio->mensaje = (char *)calloc(sizeof(char),20);
 	strcpy(servicio->mensaje, auxiliar);
 	//printf("Auxiliar:%s\n", auxiliar);
 	free(auxiliar);

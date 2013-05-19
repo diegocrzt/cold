@@ -6,7 +6,8 @@
 void fin_hilo(thread_arg arg)
 {
 	close(arg.socket_descriptor);
-	ready[arg.thread_index] = 1;
+	--ready;
+	thread_del(&(arg.lista_hilo), arg.thread_index);
 	return;
 }
 
@@ -51,32 +52,42 @@ void * coredaemon(void * argumento)
 	int len;
 	char usuario[100];
 	char clave[100];
+	int log_fd;
 	SERVICIO serv;
 
-	writelog(arg.log_fd,"Iniciando Autenticación\n");
+	free(argumento);
+
+
+	if( (log_fd = open(arg.log, O_CREAT | O_WRONLY | O_APPEND, 0666)) < 0 )
+	{ 
+		syslog(LOG_ERR,"No se puede abrir el fichero %s (%d)\n",arg.log, log_fd);
+		exit(LOG_ERROR);
+	}
+
+	writelog(log_fd,"Iniciando Autenticación\n");
 	sprintf(resp,"Usuario: ");
 
 	if(send(arg.socket_descriptor, resp, strlen(resp),0) == -1)
 	{
-		writelog(arg.log_fd,"No se puede enviar\n");
+		writelog(log_fd,"No se puede enviar\n");
 		fin_hilo(arg);
 		return;
 	}
 	if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 ) 
 	{
-		writelog(arg.log_fd, "No se puede recibir: ");
+		writelog(log_fd, "No se puede recibir: ");
 		if(len == -2)
 		{
-			writelog(arg.log_fd, "Timeout\n");
+			writelog(log_fd, "Timeout\n");
 		}else{
-			writelog(arg.log_fd, "Error de I/O\n");
+			writelog(log_fd, "Error de I/O\n");
 		}
 		fin_hilo(arg);
 		return;
 	}
 	if(len == 0)
 	{
-		writelog(arg.log_fd, "Conexión abortada\n");
+		writelog(log_fd, "Conexión abortada\n");
 		fin_hilo(arg);
 	}
 	strcpy(usuario,buffer);
@@ -84,25 +95,25 @@ void * coredaemon(void * argumento)
 	sprintf(resp,"Clave: ");
 	if(send(arg.socket_descriptor, resp, strlen(resp),0) == -1)
 	{
-		writelog(arg.log_fd,"No se puede enviar\n");
+		writelog(log_fd,"No se puede enviar\n");
 		fin_hilo(arg);
 		return;
 	}
 	if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 ) 
 	{
-		writelog(arg.log_fd, "No se puede recibir\n");
+		writelog(log_fd, "No se puede recibir\n");
 		if(len == -2)
 		{
-			writelog(arg.log_fd, "Timeout\n");
+			writelog(log_fd, "Timeout\n");
 		}else{
-			writelog(arg.log_fd, "Error de I/O\n");
+			writelog(log_fd, "Error de I/O\n");
 		}
 		fin_hilo(arg);
 		return;
 	}
 	if(len == 0)
 	{
-		writelog(arg.log_fd, "Conexión abortada\n");
+		writelog(log_fd, "Conexión abortada\n");
 		fin_hilo(arg);
 		return;
 	}
@@ -110,37 +121,37 @@ void * coredaemon(void * argumento)
 
 	// AUTENTICACIÓN
 	syslog(LOG_ERR,"user '%s' pass = '%s'\n",usuario,clave);
-	if(authentication (arg.acl_file, usuario, hash(clave)) != 0)
+	if(authentication (arg.acl, usuario, hash(clave)) != 0)
 	{
-		writelog(arg.log_fd,"Fallo de autenticación\n");
+		writelog(log_fd,"Fallo de autenticación\n");
 		sprintf(resp,"Credenciales inválidas\n");
 		if(send(arg.socket_descriptor, resp, strlen(resp),0) == -1)
 		{
-			writelog(arg.log_fd,"No se puede enviar\n");
+			writelog(log_fd,"No se puede enviar\n");
 		}
 		sprintf(temp,"[Hilo %d] Cerrando la conexión\n",arg.thread_index);
-		writelog(arg.log_fd,temp);
+		writelog(log_fd,temp);
 		fin_hilo(arg);
 		return;
 	}
 	sprintf(temp,"Se autenticó exitosamente al usuario %s\n",usuario);
-	writelog(arg.log_fd, temp);
+	writelog(log_fd, temp);
 
 	sprintf(resp,"Bienvenido al sistema de Cobros en Linea\n$ ");
 	if(send(arg.socket_descriptor, resp, strlen(resp),0) == -1)
 	{
-		writelog(arg.log_fd,"No se puede enviar\n");
+		writelog(log_fd,"No se puede enviar\n");
 		fin_hilo(arg);
 		return;
 	}
 	if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 ) 
 	{
-		writelog(arg.log_fd, "No se puede recibir\n");
+		writelog(log_fd, "No se puede recibir\n");
 		if(len == -2)
 		{
-			writelog(arg.log_fd, "Timeout\n");
+			writelog(log_fd, "Timeout\n");
 		}else{
-			writelog(arg.log_fd, "Error de I/O\n");
+			writelog(log_fd, "Error de I/O\n");
 		}
 		fin_hilo(arg);
 		return;
@@ -151,32 +162,32 @@ void * coredaemon(void * argumento)
 		
 		//sprintf(resp,"Su mensaje fue '%s'\n$ ",buffer);
 		sprintf(temp,"[DEBUG]Hilo %2d: '%s'\n",arg.thread_index,buffer);
-		writelog(arg.log_fd, temp);
+		writelog(log_fd, temp);
 
 		// Motor de Inferencia
 		if(strcmp(buffer,"exit") == 0)
 		{
 			sprintf(temp,"El usuario %s ha cerrado sesión en el hilo %d\n",usuario,arg.thread_index);
-			writelog(arg.log_fd, temp);
+			writelog(log_fd, temp);
 			fin_hilo(arg);
 			return;
 		}
 		if(strcmp(buffer,"help") == 0)
 		{
 			sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
-			writelog(arg.log_fd, temp);
+			writelog(log_fd, temp);
 		}
 		if(strcmp(buffer,"lastrx") == 0)
 		{
 			sprintf(temp,"IMPRIMIR LAS ÚLTIMAS 3 TRANSACCIONES\n");
-			writelog(arg.log_fd, temp);
-			if( db_module("lastrx", serv,usuario,arg.log_fd,resp) != 0)
+			writelog(log_fd, temp);
+			if( db_module("lastrx", serv,usuario,log_fd,resp) != 0)
 			{
-	               		writelog(arg.log_fd,"EXPLOTO BD Intentando mostrar las útlimas 3 transacciones\n");
+	               		writelog(log_fd,"EXPLOTO BD Intentando mostrar las útlimas 3 transacciones\n");
 			}else{
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{
-                			writelog(arg.log_fd,"No se puede enviar\n");
+                			writelog(log_fd,"No se puede enviar\n");
 					fin_hilo(arg);
 					return;
         			}
@@ -185,68 +196,68 @@ void * coredaemon(void * argumento)
 		if(strncmp(buffer,"col ",4) == 0)
 		{
 			sprintf(temp,"PARSEANDO MENSAJE DE COBRO EN LINEA\n");
-			writelog(arg.log_fd, temp);
+			writelog(log_fd, temp);
 			buffer[len-1] = '\n';
-			if( col_parser(&serv,buffer+4,arg.log_fd) != 0)
+			if( col_parser(&serv,buffer+4,log_fd) != 0)
 			{
 				sprintf(temp,"Patron inválido\n");
-				writelog(arg.log_fd, temp);
+				writelog(log_fd, temp);
 				sprintf(resp,"Patron inválido. Verifique y reintente\n$ ");
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{
-                			writelog(arg.log_fd,"No se puede enviar\n");
+                			writelog(log_fd,"No se puede enviar\n");
 					fin_hilo(arg);
 					return;
         			}
 			}else{
 				//MAGIA
-                		writelog(arg.log_fd,"MAGIA DE BD\n");
+                		writelog(log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("col",serv,usuario,arg.log_fd,NULL) != 0)
-	                		writelog(arg.log_fd,"CoL EXPLOTO BD\n");
+				if( db_module("col",serv,usuario,log_fd,NULL) != 0)
+	                		writelog(log_fd,"CoL EXPLOTO BD\n");
 			}
 		}
 		if(strncmp(buffer,"rev ",4) == 0)
 		{
 			sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
-			writelog(arg.log_fd, temp);
+			writelog(log_fd, temp);
 			buffer[len-1] = '\n';
 			if( rev_parser(&serv,buffer+4) != 0)
 			{
 				sprintf(temp,"Patron inválido\n");
-				writelog(arg.log_fd, temp);
+				writelog(log_fd, temp);
 				sprintf(resp,"Patron inválido. Verifique y reintente\n$ ");
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{
-                			writelog(arg.log_fd,"No se puede enviar\n");
+                			writelog(log_fd,"No se puede enviar\n");
 					fin_hilo(arg);
 					return;
         			}
 			}else{
 				//MAGIA
-                		writelog(arg.log_fd,"MAGIA DE BD\n");
+                		writelog(log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("rev",serv,usuario,arg.log_fd,NULL) != 0)
-	                		writelog(arg.log_fd,"EXPLOTO BD\n");
+				if( db_module("rev",serv,usuario,log_fd,NULL) != 0)
+	                		writelog(log_fd,"EXPLOTO BD\n");
 			}
 		}
 
 		sprintf(resp,"$ ");
 		if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         	{
-                	writelog(arg.log_fd,"No se puede enviar\n");
+                	writelog(log_fd,"No se puede enviar\n");
 			fin_hilo(arg);
 			return;
         	}
 
 		if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 )
         	{
-                	writelog(arg.log_fd, "no se puede recibir\n");
+                	writelog(log_fd, "no se puede recibir\n");
 			if(len == -2)
 			{
-				writelog(arg.log_fd, "Timeout\n");
+				writelog(log_fd, "Timeout\n");
 			}else{
-				writelog(arg.log_fd, "Error de I/O\n");
+				writelog(log_fd, "Error de I/O\n");
 			}
 			fin_hilo(arg);
 			return;
@@ -256,7 +267,7 @@ void * coredaemon(void * argumento)
 
 	sprintf(print_buffer,"Hilo %d cerrando la conexión\n", arg.thread_index);
 	
-	write(arg.log_fd,print_buffer,strlen(print_buffer));
+	write(log_fd,print_buffer,strlen(print_buffer));
 	
 	fin_hilo(arg);
 	return;

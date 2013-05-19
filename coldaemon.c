@@ -86,11 +86,16 @@ int main(int argc, char * argv[])
 		ready[i] = 1;
 	}
 	*/
+	argumento.lista_hilo = NULL;
 	i = 0;
 	while(1)
 	{
 		signal_handler();
-		pthread_create(&manager,NULL, thread_manager, (void *) &argumento); 
+		if(!i)
+		{
+			pthread_create(&manager,NULL, thread_manager, (void *) &argumento); 
+			i = 1;
+		}
 		sleep(1);
 	}
 	

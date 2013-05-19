@@ -7,9 +7,9 @@ exit_nicely(PGconn *conn)
     return;
 }
 
-int existe_factura(const char * compr,const char * medidor, const char * prefijo, const char * numero, const char * abonado,const char * monto, const char * vencimiento, PGconn * conn, PGresult * res,int log_fd){
+int existe_factura(const char * cod_serv, const char * compr,const char * medidor, const char * prefijo, const char * numero, const char * abonado,const char * monto, const char * vencimiento, PGconn * conn, PGresult * res,int log_fd){
 	
-	const char *parametros[7];
+	const char *parametros[8];
 	parametros[0] = compr;
 	parametros[1] = medidor;
 	parametros[2] = abonado;
@@ -17,11 +17,11 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 	parametros[4] = numero;
 	parametros[5] = monto;
 	parametros[6] = vencimiento;
+	parametros[7] = cod_serv;
 	int entero = 0;
 	char temp[512];
-	res = PQexecParams(conn,
-						"SELECT * FROM pendientes WHERE (compr=$1 OR medidor=$2 OR abonado=$3 OR 							(numero=$4 AND prefijo=$5)) AND monto=$6 AND vencimiento>=$7;",
-						7,
+	res = PQexecParams(conn,"SELECT * FROM pendientes WHERE (compr=$1 OR medidor=$2 OR abonado=$3 OR (numero=$4 AND prefijo=$5)) AND (monto=$6 AND vencimiento>=$7 AND cod_serv=$8);",
+						8,
 						NULL,
 						parametros,
 						NULL,
@@ -29,12 +29,13 @@ int existe_factura(const char * compr,const char * medidor, const char * prefijo
 						0);
 	
 	if (PQntuples(res) == 0)
-    {
-    	sprintf(temp,"Factura inválida\n");
+    	{
+    		sprintf(temp,"Factura inválida\n");
 		writelog(log_fd,temp);
-       	entero = 1;
-    }
-    PQclear(res);
+       		entero = 1;
+    	}
+	
+    	PQclear(res);
 	return entero;
 }
 
@@ -67,8 +68,9 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	PGconn     	*conn;
 	PGresult   	*res;
     
-  	const char *paramValues[14];
+  	const char *paramValues[15];
   	const char *paramValues2[14]; //utilizado para comandos de eliminacion
+	const char *paramRev[14];
     int         paramLengths[14];
     int         paramFormats[14];
     int			t,f,tuples;              
@@ -103,13 +105,27 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[11] = usuario;
 	paramValues[12] = "20131212235959";
 	paramValues[13] = operacion;
+	paramValues[14] = serv.mensaje;
 	/*strcpy(aux_venc,serv.vencimiento);
 	strcat(aux_venc,"235959");
 	paramValues[12] = aux_venc;*/
-	
+	paramRev[0]=operacion;
+	paramRev[1]=serv.codser;
+	paramRev[2]=serv.fechahora;
+	paramRev[3]=usuario; 
+	paramRev[4]=serv.mensaje;
+	paramRev[5]=serv.tipofact;
+	paramRev[6]=serv.comprobante;
+	paramRev[7]=aux_monto;
+	paramRev[8]=aux_verificador;
+	paramRev[9]=serv.prefijo;
+	paramRev[10]=serv.numero;
+	paramRev[11]=serv.nummed;
+	paramRev[12]=serv.abonado;
+	paramRev[13]=aux_numtran;
 	sprintf(temp,"ENTRO A db_module\n");
 	writelog(log_fd,temp);
-	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %s\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento);
+	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %s\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\nmensaje al entrar: %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento,serv.mensaje);
 	writelog(log_fd,temp);
 	
 	// Se realiza la conexión a la base de datos
@@ -129,7 +145,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 		*	se envia serv.fecha hora a existe_factura y no serv.vencimiento
 		*	se cambia paramValues[10] por paramValues[12]
 		*/
-		if(existe_factura(paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd) == 0){
+		if(existe_factura(paramValues[0],paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd) == 0){
 			//insertar registro en la tabla de pagadas
 			res = PQexecParams(conn,
                        "INSERT INTO pagadas VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
@@ -167,7 +183,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 				//eliminar fijo
 				paramValues2[0] = serv.prefijo;
 				paramValues2[1] = serv.numero;
-				sprintf(temp,"prefijo: %s\nnumero: %s\n",paramValues[0],paramValues[1]);
+				sprintf(temp,"prefijo: %s\nnumero: %s\n",paramValues2[0],paramValues2[1]);
 				writelog(log_fd,temp);
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE numero=$2 AND prefijo=$1;",
@@ -227,17 +243,17 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			PQclear(res);
 			//agregar a transacciones
     		res = PQexecParams(conn,
-                       "INSERT INTO transacciones VALUES ($14,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
-                       14,       // 14 parametros
-                       NULL,    // let the backend deduce param type
-                       paramValues,
-                       NULL,    // don't need param lengths since text
-                       NULL,    // default to all text params
-                       0);      // ask for non binary results
+        	"INSERT INTO transacciones VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14);",
+           	14,       // 13 parametros
+            NULL,    // let the backend deduce param type
+            paramRev,
+            NULL,    // don't need param lengths since text
+            NULL,    // default to all text params
+            0);      // ask for non binary results
 			
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
-        		sprintf(temp,"fallo de envio a transaccion col: %s", PQerrorMessage(conn));
+        		sprintf(temp,"fallo de envio a transaccion: %s", PQerrorMessage(conn));
 				writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
@@ -245,7 +261,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		PQclear(res);
 		}
 	}else if(strcmp(operacion, "rev") == 0){
-	
+
 		if(existe_trx(paramValues[9],conn,res,log_fd) == 0){
 			sprintf(temp,"Existe la transaccion\nMoviendo a pendientes\n");
 			writelog(log_fd,temp);
@@ -289,13 +305,13 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		
     		//agregar a transacciones
     		res = PQexecParams(conn,
-                       "INSERT INTO transacciones VALUES ($14,0,0,0,0,0,0,0,0,0,0,0,$12,0);",
-                       14,       // 13 parametros
-                       NULL,    // let the backend deduce param type
-                       paramValues,
-                       NULL,    // don't need param lengths since text
-                       NULL,    // default to all text params
-                       0);      // ask for non binary results
+        	"INSERT INTO transacciones VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14);",
+           	14,       // 13 parametros
+            NULL,    // let the backend deduce param type
+            paramRev,
+            NULL,    // don't need param lengths since text
+            NULL,    // default to all text params
+            0);      // ask for non binary results
 			
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
@@ -345,11 +361,10 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 		/*
 		*	Se podria guardar la fecha/hora del sistema
 		*/
-    	res = PQexecParams(conn,
-        	"INSERT INTO transacciones VALUES ($14,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
-           	14,       // 13 parametros
+    		res = PQexecParams(conn,"INSERT INTO transacciones VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14);",
+		14,       // 13 parametros
             NULL,    // let the backend deduce param type
-            paramValues,
+            paramRev,
             NULL,    // don't need param lengths since text
             NULL,    // default to all text params
             0);      // ask for non binary results
