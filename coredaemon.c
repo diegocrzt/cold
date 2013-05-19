@@ -29,7 +29,15 @@ int recvtimeout(int socket, char *buffer, int len, int timeout)
 		return -1; // error
 	}
 
-	return recv(socket, buffer, len, 0);
+	n = recv(socket, buffer, len, 0);
+	if( n > 0 )
+	{
+		buffer[n - 1] = '\0';
+		limpiar_telnet(buffer);
+		--n;
+	}
+
+	return n;
 }
 
 
@@ -71,7 +79,6 @@ void * coredaemon(void * argumento)
 		writelog(arg.log_fd, "Conexión abortada\n");
 		fin_hilo(arg);
 	}
-	buffer[len -1] = '\0';
 	strcpy(usuario,buffer);
 
 	sprintf(resp,"Clave: ");
@@ -99,11 +106,10 @@ void * coredaemon(void * argumento)
 		fin_hilo(arg);
 		return;
 	}
-	buffer[len -1] = '\0';
 	strcpy(clave,buffer);
 
 	// AUTENTICACIÓN
-	
+	syslog(LOG_ERR,"user '%s' pass = '%s'\n",usuario,clave);
 	if(authentication (arg.acl_file, usuario, hash(clave)) != 0)
 	{
 		writelog(arg.log_fd,"Fallo de autenticación\n");
@@ -142,7 +148,6 @@ void * coredaemon(void * argumento)
 
 	while( len > 0)
 	{
-		buffer[len-1]='\0';
 		
 		//sprintf(resp,"Su mensaje fue '%s'\n$ ",buffer);
 		sprintf(temp,"[DEBUG]Hilo %2d: '%s'\n",arg.thread_index,buffer);
@@ -182,7 +187,7 @@ void * coredaemon(void * argumento)
 			sprintf(temp,"PARSEANDO MENSAJE DE COBRO EN LINEA\n");
 			writelog(arg.log_fd, temp);
 			buffer[len-1] = '\n';
-			if( col_parser(&serv,buffer+4) != 0)
+			if( col_parser(&serv,buffer+4,arg.log_fd) != 0)
 			{
 				sprintf(temp,"Patron inválido\n");
 				writelog(arg.log_fd, temp);
@@ -257,3 +262,19 @@ void * coredaemon(void * argumento)
 	return;
 }
 
+void limpiar_telnet(char * cadena)
+{
+	int i = 0;
+	
+	while(cadena[i] != '\0')
+	{
+		if(cadena[i] == '\015')
+		{
+			cadena[i] = '\0';
+			break;
+		} 
+		i++;
+	}
+
+	return;
+}

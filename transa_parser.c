@@ -1,6 +1,6 @@
 #include "coldaemon.h"
 
-char col_parser (SERVICIO *servicio, char * patron)
+char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 {
 	int contcar = 0; //contador de caracteres
 	char string[58] = {0}; //rubro
@@ -12,6 +12,7 @@ char col_parser (SERVICIO *servicio, char * patron)
 	auxiliar = (char *) malloc(sizeof(char)*3);
 	//char patron[] = "0011234562013121216321500112345678912000000100000201312127\n";
 	int index = 0;
+	char tmp[512];
 	
 	//establecer el rubro de transaccion
 	for(contcar=0 ; contcar <=2; contcar++)
@@ -272,7 +273,6 @@ char col_parser (SERVICIO *servicio, char * patron)
 				//printf("Auxiliar: %s\n", auxiliar);
 				free(auxiliar);
 				//printf("Prefijo: %s\n", servicio->prefijo);
-
 				//Asignar recursos al numero
 				servicio->numero = (char *)malloc(sizeof(char)*7);
 				//Asignar recursos al auxiliar
@@ -319,6 +319,7 @@ char col_parser (SERVICIO *servicio, char * patron)
 			case 3:
 				//printf("Suministro Electrico\n");
 				//Asignar recursos al auxiliar
+				servicio->nummed = (char *)malloc(sizeof(char)*12);
 				auxiliar = (char *)malloc(sizeof(char)*12);
 				
 				for(contcar = 0; contcar <= 14; contcar++)
@@ -328,7 +329,12 @@ char col_parser (SERVICIO *servicio, char * patron)
 				}
 				
 				//Asignar el numero de medidor
-				servicio->nummed = atoi(auxiliar);
+				strcpy (servicio->nummed, auxiliar);
+				
+				sprintf(tmp,"auxiliar parser: %s\n",auxiliar);
+				writelog(log_fd,tmp);
+				sprintf(tmp,"Medidor parser: %s\n",servicio->nummed);
+				writelog(log_fd,tmp);
 				//Liberar el auxiliar
 				//printf("Auxiliar: %s\n", auxiliar);
 				free(auxiliar);

@@ -64,12 +64,12 @@ typedef struct
 	char *fechahora; //14 DIGITOS fecha y hora de transaccion
 	char *tipofact; // 3 DIGITOS tipo de factura
 	char *comprobante; //11 DIGITOS numero de comprobante
-	int monto; //12 DIGITOS monto de la factura
+	long int monto; //12 DIGITOS monto de la factura
 	char *vencimiento; //8 DIGITOS fecha de vencimiento
 	int verificador; //1 DIGITOS digito verificador
 	char *prefijo; //4 DIGITOS prefijo
 	char *numero; //7 DIGITOS numero telefonico
-	int nummed; //15 DIGITOS numero de medidor
+	char *nummed; //15 DIGITOS numero de medidor
 	char *abonado; //9 DIGITOS numero de abonado
 	char *mensaje; //20 CARACTERES DE MENSAJE
 }SERVICIO;
@@ -116,11 +116,13 @@ int config_parser (char * config_file, int * puerto, int * threads, int * timeou
 	EL CORE DAEMON
 */
 void * coredaemon(void * argumento);
+// Helper para limpiar el #015 que telnet envía como Retorno de Línea
+void limpiar_telnet(char * cadena);
 
 /*
 	Parser de patrones de entrada
 */
-char col_parser (SERVICIO *servicio, char * patron);
+char col_parser (SERVICIO *servicio, char * patron, int log_fd);
 char rev_parser (SERVICIO *reversa, char * patron);
 
 /*
