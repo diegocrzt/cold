@@ -1,0 +1,61 @@
+#!/bin/sh
+
+case "$1" in
+start)
+echo "Iniciando servicio... "
+# Aquí comando a ejecutar para arrancar el servicio
+	cold /etc/cold.properties
+;;
+stop)
+# Aquí comando a ejecutar para detener el servicio
+	pid=`pidof cold`
+	if [ -z $pid ]; then        
+		echo "No se puede detener el servicio, el demonio no esta corriendo"
+	else
+		echo "Deteniendo servicio..."
+		kill -TERM $pid
+	fi
+#TERM (15) senhal de detenerse
+
+;;
+restart)
+# Aquí comando a ejecutar para reiniciar el servicio
+	pid=`pidof cold`
+	if [ -z $pid ]; then        
+		echo "No se puede reiniciar el servicio, el demonio no esta corriendo"	
+	else
+		echo "Reiniciando servicio..."
+		kill -TERM $pid
+		cold /etc/cold.properties
+	fi
+#TERM (15)
+
+;;
+reload)
+# Aquí comando a ejecutar para recargar el servicio
+	pid=`pidof cold`
+	if [ -z $pid ]; then 
+		echo "No se puede recargar.. el demonio no esta corriendo.."
+	else 
+		echo "Recargando archivo de configuracion del servicio..."	
+		kill -HUP $pid
+	fi
+	#HUP (1)
+
+;;
+status)
+	pid=`pidof cold`
+	if [ -z $pid ]; then
+		echo "El demonio no esta activo.."
+	else
+		echo "El demonio esta activo PID= $pid"
+	
+	fi
+
+;;
+*)
+echo "Modo de empleo: sudo service coldaemon {start|stop|restart|reload|status}"
+exit 1
+;;
+esac
+exit 0
