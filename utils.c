@@ -80,7 +80,7 @@ void thread_del(struct thread_list **lista, int index)
 }
 
 /*generador de hash de contrasenha recibe el char ingresado por teclado de la contrasenha y lo hashea retornando el long hash del pass*/
-unsigned long hash( char * str)
+uint32_t hash( char * str)
 {         
     //printf ("lk%s", &str);      
     uint32_t hash = 5381;

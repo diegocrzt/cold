@@ -149,7 +149,7 @@ void writelog(int log_fd, const char * mensaje);
 void thread_add(struct thread_list **lista, int index);
 pthread_t * thread_get(struct thread_list *lista, int index);
 void thread_del(struct thread_list **lista, int index);
-unsigned long hash( char * str);
+uint32_t hash( char * str);
 char authentication (char * acl_file, char * user, unsigned long  pass_buscado);
 
 /*
