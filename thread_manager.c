@@ -10,9 +10,8 @@ void * thread_manager(void * argumento)
 	int log_fd;
 	char printBuffer[STR_LEN];
 	//SOCKET
-	struct sockaddr_in sin;
 	struct sockaddr_in pin;
-	int sock_descriptor;
+	struct sockaddr_in sin;
 	int temp_sock_descriptor;
 	int address_size;
 	char buf[PKG_LEN];
@@ -29,27 +28,18 @@ void * thread_manager(void * argumento)
 	strcpy(printBuffer,"[cold] Cobros On-Line Daemon\n");
 	writelog(log_fd,printBuffer);
 
-	// SOCKET PARA ESCUCHAR CONEXIONES
-	sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-	if( sock_descriptor == -1)
-	{
-		syslog(LOG_ERR,"No se puede obtener un descriptor de socket\n");
-		exit(SOCK_DESCRIPTOR_ERROR);
-	}
-
 	bzero(&sin, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = INADDR_ANY;
 	sin.sin_port = htons(puerto);
 
-
-	if( (ret = bind(sock_descriptor, (struct sockaddr *)&sin, sizeof(sin))) == -1 )
+	if( (ret = bind(arg.socket_descriptor, (struct sockaddr *)&(sin), sizeof(sin))) == -1 )
 	{
 		syslog(LOG_ERR,"No se puede usar el puerto %d\n",puerto);
 		exit(BINDING_ERROR);
 	}
 
-	if( listen(sock_descriptor, threads) == -1 )
+	if( listen(arg.socket_descriptor, threads) == -1 )
 	{
 		syslog(LOG_ERR,"No se puede escuchar en el puerto %d\n",puerto);
 		exit(LISTENNING_ERROR);
@@ -60,7 +50,7 @@ void * thread_manager(void * argumento)
 	
 	while(1)
 	{
-		temp_sock_descriptor = accept(sock_descriptor, (struct sockaddr *)& pin, &address_size);
+		temp_sock_descriptor = accept(arg.socket_descriptor, (struct sockaddr *)& pin, &address_size);
 		if( temp_sock_descriptor == -1 )
 		{
 			syslog(LOG_ERR,"No se puede aceptar la conexión\n");

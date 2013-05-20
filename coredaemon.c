@@ -55,6 +55,8 @@ void * coredaemon(void * argumento)
 	int log_fd;
 	SERVICIO serv;
 
+	free(argumento);
+
 	if( (log_fd = open(arg.log, O_CREAT | O_WRONLY | O_APPEND, 0666)) < 0 )
 	{ 
 		syslog(LOG_ERR,"No se puede abrir el fichero %s (%d)\n",arg.log, log_fd);
@@ -247,7 +249,7 @@ void * coredaemon(void * argumento)
 			return;
         	}
 
-		if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 )
+		if( ( len = recvtimeout(arg.socket_descriptor, buffer, PKG_LEN,arg.timeout) ) < 0 )
         	{
                 	writelog(log_fd, "no se puede recibir\n");
 			if(len == -2)
@@ -264,6 +266,7 @@ void * coredaemon(void * argumento)
 
 	sprintf(print_buffer,"Hilo %d cerrando la conexión\n", arg.thread_index);
 	writelog(log_fd,print_buffer);
+	close(log_fd);
 	
 	fin_hilo(arg);
 	return;
