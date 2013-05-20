@@ -80,7 +80,7 @@ void thread_del(struct thread_list **lista, int index)
 }
 
 /*generador de hash de contrasenha recibe el char ingresado por teclado de la contrasenha y lo hashea retornando el long hash del pass*/
-unsigned long hash( char * str)
+uint32_t hash( char * str)
 {         
     //printf ("lk%s", &str);      
     uint32_t hash = 5381;
@@ -94,7 +94,7 @@ unsigned long hash( char * str)
 }
 
 /*recibe el puntero al archivo, el puntero al usuario y contrasenha a verificar*/
-char authentication (char * acl_file, char * user, unsigned long  pass_buscado)
+char authentication (char * acl_file, char * user, uint32_t  pass_buscado)
 {
        char user1[50] = {'\0'};
 	char *tokenPtr;
