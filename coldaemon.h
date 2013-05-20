@@ -75,6 +75,7 @@ typedef struct
 }SERVICIO;
 
 int ready;
+pthread_mutex_t lock;
 
 // Biblioteca de Funciones de:
 // Hash, postgres, semaforos
@@ -94,6 +95,7 @@ int ready;
 #define CHDIR_ERROR 10
 #define CONFIG_ERROR 12
 #define NULL_THREAD 14
+#define CANT_CLOSE_SOCKET 15
 
 /*
 	acl_file es un puntero al nombre del fichero que tiene los datos de autenticación
@@ -149,9 +151,4 @@ void * thread_manager(void * argumento);
 */
 char config_module(char * config_file, thread_arg * argumento);
 void dbg_print_thread_arg(thread_arg * argumento);
-
-/*
-	Pequeño gestor de señales
-*/
-void signal_handler(void);
 

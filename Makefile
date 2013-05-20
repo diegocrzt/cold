@@ -25,7 +25,7 @@ thread_manager.o: thread_manager.c coldaemon.h
 config_module.o: config_module.c coldaemon.h
 	cc -c config_module.c -o config_module.o
 
-.PHONY: clean install
+.PHONY: clean install uninstall
 
 clean:
 	rm -rf cold *.o
@@ -36,4 +36,10 @@ install:
 	install -m 644 cold.properties /etc/cold.properties
 	install -m 755 coldaemon /etc/init.d/coldaemon
 	update-rc.d coldaemon defaults 80
+
+uninstall:
+	rm -f /bin/cold
+	rm -f /etc/cold.user.acl
+	rm -f /etc/cold.properties
+	rm -f /etc/init.d/coldaemon
 

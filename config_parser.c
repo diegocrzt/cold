@@ -6,7 +6,7 @@ int config_parser(char * config_file, int * puerto, int * threads, int *timeout,
 	char string[100]; //string donde se almacenan las lineas de configuracion
 	int i; //variable para el for
 	FILE *ficheroPtr;
-
+	//syslog(LOG_ERR,"config_file = %s\n",config_file);
 	if(( ficheroPtr = fopen( config_file, "r")) == NULL)
 		return INVALID_CONFIG_FILE;
 	/* Comparacion de string con cada argumento de configuracion */
