@@ -146,7 +146,8 @@ int main(int argc, char * argv[])
 			close(argumento.socket_descriptor);
 			/* Desbloquea SIGHUP */
 			sigprocmask(SIG_UNBLOCK, &sigset, NULL);
-			return OK;
+			syslog(LOG_INFO,"Parando el demonio\n");
+			exit(OK);
 		}
 		sleep(1);
 	}
