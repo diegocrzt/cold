@@ -1,6 +1,5 @@
 #include "coldaemon.h"
 #include <string.h>
-#include "hash.h"
 #include <postgresql/libpq-fe.h>
 
 void fin_hilo(thread_arg arg)
