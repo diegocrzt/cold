@@ -97,6 +97,8 @@ pthread_mutex_t lock;
 #define NULL_THREAD 14
 #define CANT_CLOSE_SOCKET 15
 #define DB_EXIT_NICELY 20
+#define CANT_READ_ACL 16
+#define INVALID_USER 17
 
 #define INVALID_COD_SERV 30
 #define INVALID_YEAR 31

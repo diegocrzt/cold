@@ -96,7 +96,8 @@ uint32_t hash( char * str)
 /*recibe el puntero al archivo, el puntero al usuario y contrasenha a verificar*/
 char authentication (char * acl_file, char * user, uint32_t  pass_buscado)
 {
-       char user1[50];
+       char user1[50] = {'\0'};
+	char *tokenPtr;
        char *pass_file;
 	int x = 0;
        uint32_t pass1=0;
@@ -104,9 +105,8 @@ char authentication (char * acl_file, char * user, uint32_t  pass_buscado)
 
 		if( ( acl = fopen(acl_file,"r") ) == NULL)
 		{
-			//syslog(LOG_ERR,"No se pudo abrir %s\n",acl_file);
-			//printf("No se pudo abrir %s\n",acl_file);
-			return -1; //Código de error para "No se puede leer ACL"
+			syslog(LOG_ERR,"No se pudo abrir %s\n",acl_file);
+			return CANT_READ_ACL; //Código de error para "No se puede leer ACL"
 		}
 
                strcpy(user1, "");//vacia la variable user1
@@ -124,16 +124,14 @@ char authentication (char * acl_file, char * user, uint32_t  pass_buscado)
 Compara los primeros n caracteres del objeto apuntado por s1 (interpretado como
 unsigned char) con los primeros n caracteres del objeto apuntado por s2 (interpretado
 como unsigned char).Devuelve 0 en caso que sean iguales*/
-
-               if(pass_buscado==pass1 && memcmp(user1,user,x)==0)
+		tokenPtr= strtok(user1,"::");
+               if((pass_buscado==pass1 && strcmp(tokenPtr,user)) == 0)
                {/*verifica si la variable registrada el final de recorrer la lista de archivos es igual al usuario y contrasenha buscados para la autenticacion*/
-                        printf("Usuario # %s # Valido\n", user);
-			return 0;
+			return OK;
                }     
                else//si no es por que recorrio todo el archivo y no encontro coincidencias de user y pass
                {
-                   printf(" #######ERROR########\n ==Usuario %s INVALIDO==\n", user);
-			return -1;//DEFINIR ERROR
+			return INVALID_USER;
                }
                    
 }//fin autenticacion
