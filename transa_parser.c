@@ -270,8 +270,6 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				
 				//Asignar el prefijo
 				strcpy(servicio->prefijo, auxiliar);
-				sprintf(tmp,"prefijOO parser: %s\n",auxiliar);
-				writelog(log_fd,tmp);
 				
 				//Liberar el auxiliar
 				free(auxiliar);
@@ -290,8 +288,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//Asignar el numero
 				strcpy(servicio->numero, auxiliar);
 				//Liberar el auxiliar
-				sprintf(tmp,"numero parser: %s\n",auxiliar);
-				writelog(log_fd,tmp);
+				
 				free(auxiliar);
 				//printf("Numero: %s\n", servicio->numero);
 
@@ -333,11 +330,6 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				
 				//Asignar el numero de medidor
 				strcpy (servicio->nummed, auxiliar);
-				
-				sprintf(tmp,"auxiliar parser: %s\n",auxiliar);
-				writelog(log_fd,tmp);
-				sprintf(tmp,"Medidor parser: %s\n",servicio->nummed);
-				writelog(log_fd,tmp);
 				//Liberar el auxiliar
 				//printf("Auxiliar: %s\n", auxiliar);
 				free(auxiliar);
@@ -383,8 +375,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//Asignar el prefijo
 				strcpy(servicio->prefijo, auxiliar);
 				//Liberar el auxiliar
-				sprintf(tmp,"prefijo parser: %s\n",auxiliar);
-				writelog(log_fd,tmp);
+				
 				free(auxiliar);
 				//printf("Prefijo: %s\n", servicio->prefijo);
 
@@ -402,8 +393,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//Asignar el numero
 				strcpy(servicio->numero, auxiliar);
 				//Liberar el auxiliar
-				sprintf(tmp,"numero parser: %s\n",auxiliar);
-				writelog(log_fd,tmp);
+				
 				free(auxiliar);
 				//printf("Numero: %s\n", servicio->numero);
 

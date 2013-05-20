@@ -169,8 +169,6 @@ void * coredaemon(void * argumento)
 
 	while( len > 0)
 	{
-		
-
 		// Motor de Inferencia
 		if(strcmp(buffer,"close") == 0)
 		{
@@ -214,8 +212,6 @@ void * coredaemon(void * argumento)
 		}
 		if(strncmp(buffer,"col ",4) == 0)
 		{
-			sprintf(temp,"PARSEANDO MENSAJE DE COBRO EN LINEA\n");
-			writelog(log_fd, temp);
 			buffer[len-1] = '\n';
 			if( col_parser(&serv,buffer+4,log_fd) != 0)
 			{
@@ -229,10 +225,8 @@ void * coredaemon(void * argumento)
 					return;
         			}
 			}else{
-				//MAGIA
-                		writelog(log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("col",serv,usuario,log_fd,resp) != 0)
+				if(db_module("col",serv,usuario,log_fd,resp) != 0)
 	                		writelog(log_fd,"CoL EXPLOTO BD\n");
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{
@@ -244,8 +238,6 @@ void * coredaemon(void * argumento)
 		}
 		if(strncmp(buffer,"rev ",4) == 0)
 		{
-			sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
-			writelog(log_fd, temp);
 			buffer[len-1] = '\n';
 			if( rev_parser(&serv,buffer+4) != 0)
 			{
@@ -259,11 +251,15 @@ void * coredaemon(void * argumento)
 					return;
         			}
 			}else{
-				//MAGIA
-                		writelog(log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("rev",serv,usuario,log_fd,NULL) != 0)
+				if(db_module("rev",serv,usuario,log_fd,resp) != 0)
 	                		writelog(log_fd,"EXPLOTO BD\n");
+				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
+        			{
+                			writelog(log_fd,"No se puede enviar\n");
+					fin_hilo(arg);
+					return;
+        			}
 			}
 		}
 

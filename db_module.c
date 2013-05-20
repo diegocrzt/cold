@@ -7,7 +7,7 @@ exit_nicely(PGconn *conn)
     return;
 }
 
-int existe_factura(const char * cod_serv, const char * compr,const char * medidor, const char * prefijo, const char * numero, const char * abonado,const char * monto, const char * vencimiento, PGconn * conn, PGresult * res,int log_fd){
+int existe_factura(const char * cod_serv, const char * compr,const char * medidor, const char * prefijo, const char * numero, const char * abonado,const char * monto, const char * vencimiento, PGconn * conn, PGresult * res,int log_fd,char * resp){
 	
 	const char *parametros[8];
 	parametros[0] = compr;
@@ -30,6 +30,7 @@ int existe_factura(const char * cod_serv, const char * compr,const char * medido
 	
 	if (PQntuples(res) == 0)
     	{
+		sprintf(resp,"Factura invalida\n");
     		sprintf(temp,"Factura inválida\n");
 		writelog(log_fd,temp);
        		entero = 1;
@@ -39,7 +40,7 @@ int existe_factura(const char * cod_serv, const char * compr,const char * medido
 	return entero;
 }
 
-int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_fd){
+int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_fd, char * resp){
 	const char *parametros[1];
 	parametros[0] = transaccion;
 	int entero = 0;
@@ -53,6 +54,7 @@ int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_
 						0);
 	if (PQntuples(res) == 0)
 	{
+		sprintf(resp,"No existe transaccion a reversar\n");
 		sprintf(temp,"No existe transaccion a reversar\n");
 		writelog(log_fd,temp);
 		entero = 1;
@@ -64,13 +66,13 @@ int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_
 int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char * resp)
 {
 	time_t current_time;
-    char* c_time_string;
+   	char* c_time_string;
  
-    /* Obtain current time as seconds elapsed since the Epoch. */
-    current_time = time(NULL);
- 
-    /* Convert to local time format. */
-    c_time_string = ctime(&current_time);
+	//Se obtiene el tiempo en segundos 
+	current_time = time(NULL);
+
+	//Se convierte al formato de hora local
+	c_time_string = ctime(&current_time);
  
 	char temp[512] = {0};
 	const char 	*conninfo;  
@@ -80,9 +82,9 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
   	const char *paramValues[15];
   	const char *paramValues2[14]; //utilizado para comandos de eliminacion
 	const char *paramRev[14];
-    int         paramLengths[14];
-    int         paramFormats[14];
-    int			t,f,tuples;              
+	int         paramLengths[14];
+	int         paramFormats[14];
+	int		t,f,tuples;              
 	char aux_monto[512];
 	char aux_nummed[512];
 	char aux_numtran[512];
@@ -95,20 +97,15 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[1] = serv.tipofact;
 	paramValues[2] = serv.comprobante;
 	sprintf(aux_monto,"%lu",serv.monto);
-	//strcpy(paramValues[3],temp);
 	paramValues[3] = aux_monto;
 	sprintf(temp,"Monto = %s\n",paramValues[3]);
-	writelog(log_fd, temp);
 	sprintf(aux_verificador,"%d",serv.verificador);
 	paramValues[4] = aux_verificador;
 	paramValues[5] = serv.prefijo;
 	paramValues[6] = serv.numero;
-	//sprintf(aux_nummed,"%s",serv.nummed);
-	//strcpy(paramValues[7],temp);
 	paramValues[7] = serv.nummed;
 	paramValues[8] = serv.abonado;
 	sprintf(aux_numtran,"%d",serv.numtran);
-	//strcpy(paramValues[9],temp);
 	paramValues[9] = aux_numtran;
 	paramValues[10] = serv.fechahora;
 	paramValues[11] = usuario;
@@ -132,10 +129,6 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramRev[11]=serv.nummed;
 	paramRev[12]=serv.abonado;
 	paramRev[13]=aux_numtran;
-	sprintf(temp,"ENTRO A db_module\n");
-	writelog(log_fd,temp);
-	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %s\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\nmensaje al entrar: %s\noperacion: %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento,serv.mensaje,operacion);
-	writelog(log_fd,temp);
 	
 	// Se realiza la conexión a la base de datos
     conn = PQconnectdb(conninfo);
@@ -150,13 +143,13 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     }
 	//INICIO DE OPERACIONES EN LA BASE DE DATOS
 	if(strcmp(operacion, "col") == 0){
-		sprintf(temp,"[%s::%s::%s::Peticion de cobro]\n",serv.fechahora,usuario,operacion);
+		sprintf(temp,"[%s::%s::%s::Peticion de cobro]\n",c_time_string,usuario,operacion);
 		writelog(log_fd,temp);
 		/*
 		*	se envia serv.fecha hora a existe_factura y no serv.vencimiento
 		*	se cambia paramValues[10] por paramValues[12]
 		*/
-		if(existe_factura(paramValues[0],paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd) == 0){
+		if(existe_factura(paramValues[0],paramValues[2],paramValues[7],paramValues[5],paramValues[6],paramValues[8],paramValues[3],paramValues[10],conn,res,log_fd,resp) == 0){
 			//insertar registro en la tabla de pagadas
 			res = PQexecParams(conn,
                        "INSERT INTO pagadas VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);",
@@ -169,15 +162,13 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
             if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
 			//SE GENERA EL MENSAJE DE RETORNO
-			sprintf(resp,"%s%s%s001Fallo el cobro\n",serv.codser,aux_numtran,serv.fechahora);
+			sprintf(resp,"%s%s%s001Fallo el cobro\n",				serv.codser,aux_numtran,serv.fechahora);
         		sprintf(temp,"insert command failed: %s", PQerrorMessage(conn));
-			
-				writelog(log_fd,temp);
+			writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
     		}     
-    		sprintf(temp,"Insert ejecutado\n");
-			writelog(log_fd,temp);
+    		
 			PQclear(res);
 			//eliminar registro de la tabla pendientes
 			//asignar valores a paramValues (si! hace falta)
@@ -197,8 +188,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 				//eliminar fijo
 				paramValues2[0] = serv.prefijo;
 				paramValues2[1] = serv.numero;
-				sprintf(temp,"prefijo: %s\nnumero: %s\n",paramValues2[0],paramValues2[1]);
-				writelog(log_fd,temp);
+				
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE numero=$2 AND prefijo=$1;",
 						2,
@@ -219,8 +209,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 						NULL,
 						NULL,
 						0);
-				sprintf(temp,"intento eliminar electricidad con medidor: %s\n",paramValues2[0]);
-				writelog(log_fd,temp);
+				
 			}else if(strcmp(serv.codser,"004") == 0){
 				//eliminar movil
 				paramValues2[0] = serv.prefijo;
@@ -254,8 +243,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
         		PQclear(res);
         		exit_nicely(conn);
     		}
-    		sprintf(temp,"Delete ejecutado\n");
-			writelog(log_fd,temp);
+    		
 			PQclear(res);
 			//agregar a transacciones
     		res = PQexecParams(conn,
@@ -277,30 +265,26 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
         		exit_nicely(conn);
     		}
 		sprintf(resp,"%s%s%s000Cobro Exitoso\n",serv.codser,aux_numtran,serv.fechahora);
+		writelog(log_fd,resp);
     		PQclear(res);
 		}
 	}else if(strcmp(operacion, "rev") == 0){
-		sprintf(temp,"[%s::%s::%s::Peticion de reversa]\n",c_time_string,usuario,operacion);
+		sprintf(temp,"[%s::%s::%s::Peticion de reversa]\n", 					c_time_string,usuario,operacion);
 		writelog(log_fd,temp);
-		if(existe_trx(paramValues[9],conn,res,log_fd) == 0){
+		if(existe_trx(paramValues[9],conn,res,log_fd,resp) == 0){
 			sprintf(temp,"Existe la transaccion\nMoviendo a pendientes\n");
 			writelog(log_fd,temp);
 			
 			//mover a pendientes
-			/*
-			*	En caso de error volver a definir id en pendientes y hacer un PQexec
-			*	para asignar un id antes del resto
-			*/
-			
 			res = PQexec(conn,"INSERT INTO pendientes 		(cod_serv,tipo,compr,monto,vencimiento,dig_verif,prefijo,numero,medidor,abonado) SELECT cod_serv,tipo,compr,monto,vencimiento,dig_verif,prefijo,numero,medidor,abonado	FROM pagadas;");
 			
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
-    		{
+    			{
         		sprintf(temp,"moving command failed: %s", PQerrorMessage(conn));
 			writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
-    		}
+    			}
     		
 			//borrar de pagadas
 			sprintf(temp,"borrando de pagadas\n");
@@ -315,13 +299,13 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
                        NULL,    // default to all text params
                        0);      // ask for non binary results
                        
-            if (PQresultStatus(res) != PGRES_COMMAND_OK)
-    		{
-        		sprintf(temp,"delete rev command failed: %s", PQerrorMessage(conn));
-			writelog(log_fd,temp);
-        		PQclear(res);
-        		exit_nicely(conn);
-    		}
+            		if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    			{
+				sprintf(temp,"delete rev command failed: %s",PQerrorMessage(conn));
+				writelog(log_fd,temp);
+				PQclear(res);
+				exit_nicely(conn);
+    			}
     		
     		//agregar a transacciones
     		res = PQexecParams(conn,
@@ -333,7 +317,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
             NULL,    // default to all text params
             0);      // ask for non binary results
 			
-			if (PQresultStatus(res) != PGRES_COMMAND_OK)
+		if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
         		sprintf(temp,"fallo de envio a transaccion: %s", PQerrorMessage(conn));
 				writelog(log_fd,temp);
@@ -359,6 +343,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 		{
 			sprintf(temp,"No hay transacciones recientes\n");
 			writelog(log_fd,temp);
+			sprintf(resp,"No hay transacciones recientes\n");
 			retorno = 1;
 		}else{
 			resp[0] = '\0';
@@ -384,8 +369,9 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 		/*
 		*	Se podria guardar la fecha/hora del sistema
 		*/
-    		res = PQexecParams(conn,"INSERT INTO transacciones VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14);",
-		14,       // 13 parametros
+		paramRev[2] = c_time_string;
+    		res = PQexecParams(conn,"INSERT INTO transacciones VALUES ($1,$2,$3,$4,'0',0,0,0,0,0,0,0,0,0);",
+		4,       // 14 parametros
             NULL,    // let the backend deduce param type
             paramRev,
             NULL,    // don't need param lengths since text
@@ -394,14 +380,14 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
+			
         		sprintf(temp,"fallo de envio a transaccion: %s", PQerrorMessage(conn));
 				writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
     		}
     		PQclear(res);
-	//}else if(strcmp(operacion, "close") == 0){
-		
+	
 	}else if(strcmp(operacion, "help") == 0){
 		sprintf(resp,"HELP\nComandos:\n- col <parametros> Realiza un cobro con la transaccion indicada por parametros.\n- rev <parametros> Realiza una reversa de la transaccion indicada por paramtros.\n- lastrx Consulta las ultimas transacciones hechas por el usuario.\n- close Cierra la conexion con el servidor\n");
 		
