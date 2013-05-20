@@ -83,7 +83,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[0] = serv.codser;
 	paramValues[1] = serv.tipofact;
 	paramValues[2] = serv.comprobante;
-	sprintf(aux_monto,"%d",serv.monto);
+	sprintf(aux_monto,"%lu",serv.monto);
 	//strcpy(paramValues[3],temp);
 	paramValues[3] = aux_monto;
 	sprintf(temp,"Monto = %s\n",paramValues[3]);
@@ -92,7 +92,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[4] = aux_verificador;
 	paramValues[5] = serv.prefijo;
 	paramValues[6] = serv.numero;
-	//sprintf(aux_nummed,"%d",serv.nummed);
+	//sprintf(aux_nummed,"%s",serv.nummed);
 	//strcpy(paramValues[7],temp);
 	paramValues[7] = serv.nummed;
 	paramValues[8] = serv.abonado;
@@ -109,7 +109,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	
 	sprintf(temp,"ENTRO A db_module\n");
 	writelog(log_fd,temp);
-	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %d\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento);
+	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %s\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento);
 	writelog(log_fd,temp);
 	
 	// Se realiza la conexión a la base de datos
@@ -179,7 +179,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 						0);
 			}else if(strcmp(serv.codser,"003") == 0){
 				//eliminar electricidad
-				paramValues2[0] = aux_nummed;
+				paramValues2[0] = serv.nummed;
 				
 				res = PQexecParams(conn,
 						"DELETE FROM pendientes WHERE medidor=$1;",
