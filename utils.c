@@ -94,7 +94,7 @@ uint32_t hash( char * str)
 }
 
 /*recibe el puntero al archivo, el puntero al usuario y contrasenha a verificar*/
-char authentication (char * acl_file, char * user, unsigned long  pass_buscado)
+char authentication (char * acl_file, char * user, uint32_t  pass_buscado)
 {
        char user1[50];
        char *pass_file;
