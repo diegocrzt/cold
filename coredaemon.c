@@ -55,9 +55,6 @@ void * coredaemon(void * argumento)
 	int log_fd;
 	SERVICIO serv;
 
-	free(argumento);
-
-
 	if( (log_fd = open(arg.log, O_CREAT | O_WRONLY | O_APPEND, 0666)) < 0 )
 	{ 
 		syslog(LOG_ERR,"No se puede abrir el fichero %s (%d)\n",arg.log, log_fd);
@@ -213,7 +210,7 @@ void * coredaemon(void * argumento)
 				//MAGIA
                 		writelog(log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("col",serv,usuario,log_fd,NULL) != 0)
+				if( db_module("rev",serv,usuario,log_fd,resp) != 0)
 	                		writelog(log_fd,"CoL EXPLOTO BD\n");
 			}
 		}
@@ -266,8 +263,7 @@ void * coredaemon(void * argumento)
 	}
 
 	sprintf(print_buffer,"Hilo %d cerrando la conexión\n", arg.thread_index);
-	
-	write(log_fd,print_buffer,strlen(print_buffer));
+	writelog(log_fd,print_buffer);
 	
 	fin_hilo(arg);
 	return;

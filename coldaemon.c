@@ -118,9 +118,15 @@ void signal_handler(void)
 	    sigemptyset(&action.sa_mask);
 	    action.sa_handler = SIG_IGN;
 	    sigaction(SIGHUP, &action, NULL);
-	    /*
-			MODULO DE CONFIGURACIÓN
-		*/
+	/*
+		if( (ret = config_module(config_file, &argumento)) != 0)
+		{
+			syslog(LOG_ERR,"Error con los parámetros de configuración config_module\n",ret);
+			return CONFIG_ERROR;
+		}
+		pthread_cancel();
+	*/
+
 	    /* Desbloquea SIGHUP */
 	    sigprocmask(SIG_UNBLOCK, &sigset, NULL);
 	}
@@ -133,6 +139,7 @@ void signal_handler(void)
 	    /*
 			Parar el demonio
 		*/
+		closelog();
 	    /* Desbloquea SIGHUP */
 	    sigprocmask(SIG_UNBLOCK, &sigset, NULL);
 	}

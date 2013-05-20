@@ -157,6 +157,8 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
                        0);      // ask for non binary results
             if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
+			//SE GENERA EL MENSAJE DE RETORNO
+			sprintf(resp,"%s%s%s001Fallo el cobro\n",serv.codser,aux_numtran,serv.fechahora);
         		sprintf(temp,"insert command failed: %s", PQerrorMessage(conn));
 				writelog(log_fd,temp);
         		PQclear(res);
@@ -233,6 +235,8 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			}
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
+			//SE GENERA EL MENSAJE DE RETORNO
+			sprintf(resp,"%s%s%s001Fallo el cobro\n",serv.codser,aux_numtran,serv.fechahora);
         		sprintf(temp,"delete command failed: %s", PQerrorMessage(conn));
 				writelog(log_fd,temp);
         		PQclear(res);
@@ -253,11 +257,14 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
     		{
+			//SE GENERA EL MENSAJE DE RETORNO
+			sprintf(resp,"%s%s%s001Fallo el cobro\n",serv.codser,aux_numtran,serv.fechahora);
         		sprintf(temp,"fallo de envio a transaccion: %s", PQerrorMessage(conn));
 				writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
     		}
+		sprintf(resp,"%s%s%s000Cobro Exitoso\n",serv.codser,aux_numtran,serv.fechahora);
     		PQclear(res);
 		}
 	}else if(strcmp(operacion, "rev") == 0){
