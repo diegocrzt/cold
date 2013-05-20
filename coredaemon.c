@@ -212,8 +212,14 @@ void * coredaemon(void * argumento)
 				//MAGIA
                 		writelog(log_fd,"MAGIA DE BD\n");
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
-				if( db_module("rev",serv,usuario,log_fd,resp) != 0)
+				if( db_module("col",serv,usuario,log_fd,resp) != 0)
 	                		writelog(log_fd,"CoL EXPLOTO BD\n");
+				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
+        			{
+                			writelog(log_fd,"No se puede enviar\n");
+					fin_hilo(arg);
+					return;
+        			}
 			}
 		}
 		if(strncmp(buffer,"rev ",4) == 0)
