@@ -61,7 +61,7 @@ void * coredaemon(void * argumento)
 	char buffer[PKG_LEN];
 	char resp[PKG_LEN];
 	char temp[PKG_LEN];
-	int len;
+	int len,error;
 	char usuario[STR_LEN];
 	char clave[STR_LEN];
 	int log_fd;
@@ -213,11 +213,50 @@ void * coredaemon(void * argumento)
 		if(strncmp(buffer,"col ",4) == 0)
 		{
 			buffer[len-1] = '\n';
-			if( col_parser(&serv,buffer+4,log_fd) != 0)
+			if((error = col_parser(&serv,buffer+4,log_fd)) != 0)
 			{
-				sprintf(temp,"Patron inválido\n");
+				
+				sprintf(temp,"ERROR: ");
 				writelog(log_fd, temp);
-				sprintf(resp,"Patron inválido. Verifique y reintente\n$ ");
+				switch (error)
+				{
+				case 30:
+					sprintf(temp,"INVALID_COD_SERV\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Codigo de servicio invalido. Verifique y reintente\n$ ");
+					break;
+				case 31:
+					sprintf(temp,"INVALID_YEAR\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Año invalido. Verifique y reintente\n$ ");
+					break;
+				case 32:
+					sprintf(temp,"INVALID_DAY\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Dia invalido. Verifique y reintente\n$ ");
+					break;
+				case 33:
+					sprintf(temp,"INVALID_MONTH\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Mes invalido. Verifique y reintente\n$ ");
+					break;
+				case 34:
+					sprintf(temp,"INVALID_HOUR\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Hora invalida. Verifique y reintente\n$ ");
+					break;
+				case 35:
+					sprintf(temp,"INVALID_MIN\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Minutos invalidos. Verifique y reintente\n$ ");
+					break;
+				case 36:
+					sprintf(temp,"INVALID_SEC\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Segundos invalidos. Verifique y reintente\n$ ");
+					break;
+				}
+
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{
                 			writelog(log_fd,"No se puede enviar\n");
@@ -227,7 +266,7 @@ void * coredaemon(void * argumento)
 			}else{
 				//IMPRIMIR LOS RESULTADOS BLAH BLHA BLHA Y LOGGEAR
 				if(db_module("col",serv,usuario,log_fd,resp) != 0)
-	                		writelog(log_fd,"CoL EXPLOTO BD\n");
+	                		writelog(log_fd,"Database Error\n");
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{
                 			writelog(log_fd,"No se puede enviar\n");
@@ -239,11 +278,49 @@ void * coredaemon(void * argumento)
 		if(strncmp(buffer,"rev ",4) == 0)
 		{
 			buffer[len-1] = '\n';
-			if( rev_parser(&serv,buffer+4) != 0)
+			if( (error = rev_parser(&serv,buffer+4)) != 0)
 			{
-				sprintf(temp,"Patron inválido\n");
+				sprintf(temp,"ERROR: ");
 				writelog(log_fd, temp);
-				sprintf(resp,"Patron inválido. Verifique y reintente\n$ ");
+				switch (error)
+				{
+				case 30:
+					sprintf(temp,"INVALID_COD_SERV\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Codigo de servicio invalido. Verifique y reintente\n$ ");
+					break;
+				case 31:
+					sprintf(temp,"INVALID_YEAR\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Año invalido. Verifique y reintente\n$ ");
+					break;
+				case 32:
+					sprintf(temp,"INVALID_DAY\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Dia invalido. Verifique y reintente\n$ ");
+					break;
+				case 33:
+					sprintf(temp,"INVALID_MONTH\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Mes invalido. Verifique y reintente\n$ ");
+					break;
+				case 34:
+					sprintf(temp,"INVALID_HOUR\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Hora invalida. Verifique y reintente\n$ ");
+					break;
+				case 35:
+					sprintf(temp,"INVALID_MIN\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Minutos invalidos. Verifique y reintente\n$ ");
+					break;
+				case 36:
+					sprintf(temp,"INVALID_SEC\n");
+					writelog(log_fd, temp);
+					sprintf(resp,"ERROR: Segundos invalidos. Verifique y reintente\n$ ");
+					break;
+				}
+				
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{
                 			writelog(log_fd,"No se puede enviar\n");

@@ -96,6 +96,15 @@ pthread_mutex_t lock;
 #define CONFIG_ERROR 12
 #define NULL_THREAD 14
 #define CANT_CLOSE_SOCKET 15
+#define DB_EXIT_NICELY 20
+
+#define INVALID_COD_SERV 30
+#define INVALID_YEAR 31
+#define INVALID_DAY 32
+#define INVALID_MONTH 33
+#define INVALID_HOUR 34
+#define INVALID_MIN 35
+#define INVALID_SEC 36
 
 /*
 	acl_file es un puntero al nombre del fichero que tiene los datos de autenticación

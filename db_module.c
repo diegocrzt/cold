@@ -394,5 +394,5 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	}
 	//Se cierra la conexión a la base de datos
     PQfinish(conn);
-	return 0;
+	return OK;
 }

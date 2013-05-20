@@ -20,7 +20,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 		string[contcar] = patron[index++]; //lectura del caracter
 		strcat(auxiliar, string+contcar); //concatenacion en el auxiliar
 		if((string[contcar] != '0') && contcar <= 1)
-			return -1;//CODIFICAR ERROR Y SALIR DE LA FUNCION. ERROR EN LOS DOS PRIMEROS DIGITOS DEL SERVICIO.	
+			return INVALID_COD_SERV;//CODIFICAR ERROR Y SALIR DE LA FUNCION. ERROR EN LOS DOS PRIMEROS DIGITOS DEL SERVICIO.	
 	}
 	
 	//****CONTROLAR QUE TIPO SEA UN NUMERO VALIDO DE SERVICIO***** SI NO ES VALIDO SALIR!!
@@ -65,7 +65,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				entero = atoi(auxiliar); //convertir el char año a entero
 				//printf("%d\n", entero);	
 				if(entero < 2013) 
-					return -2;
+					return INVALID_YEAR;
 				if((entero%4 == 0) && (entero%100 != 0) || (entero%400 == 0)) //verificacion de año biciesto
 					biciesto = 1; //año biciesto
 			}
@@ -73,44 +73,44 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 			{
 				entero = (string[13]-'0')*10 + (string[14]-'0'); //asignar el mes a entero
 				if(entero > 12 || entero < 1)
-				return -3;
+				return INVALID_MONTH;
 			
 			if((entero == 1) || (entero == 3) || (entero == 5) || (entero == 7) || (entero == 8) || (entero == 10) || (entero ==12)) // si el mes tiene 31 dias
 			{
 				entero = (string[15]-'0')*10 + (string[16]-'0');
 				if((entero < 1) || (entero > 31))
-					return -4;
+					return INVALID_DAY;
 			}
 			else if((entero == 4) || (entero == 6) || (entero == 9) || (entero == 11)) //si el mes tiene 30 dias
 				{	
 					entero = (string[15]-'0')*10 + (string[16]-'0');
 					if((entero < 1) || (entero > 30))
-						return -5;
+						return INVALID_DAY;
 				}
 			else if(biciesto == 0) //si es febrero y el año NO es biciesto
 				{
 					entero = (string[15]-'0')*10 + (string[16]-'0');
 					if((entero < 1) || (entero > 28))
-						return -6;
+						return INVALID_DAY;
 				}
 			else //si el año es biciesto y es febrero
 			{
 				entero = (string[15]-'0')*10 + (string[16]-'0');
 				if((entero < 1) || (entero > 29))
-					return -7;
+					return INVALID_DAY;
 			}
 		}		
 	}
 	
 	entero = (string[17]-'0')*10 + (string[18]-'0');
 	if((entero > 24) || (entero < 1)) // verificar si la hora es valida
-		return -8;
+		return INVALID_HOUR;
 	entero = (string[19]-'0')*10 + (string[20]-'0');
 	if((entero > 59) || (entero < 0)) //verificar si los minutos son validos
-		return -9;
+		return INVALID_MIN;
 	entero = (string[21]-'0')*10 + (string[22]-'0');
 	if((entero > 59) || (entero < 0)) //verificar si los segundos son validos
-		return -10;
+		return INVALID_SEC;
 	
 	//asignar la fechahora del servicio
 	strcpy(servicio->fechahora, auxiliar);
@@ -194,7 +194,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 					{
 						entero = atoi(auxiliar); //convertir el char año a entero
 						if(entero < 2013)
-							return -11;
+							return INVALID_YEAR;
 						if((entero%4 == 0) && (entero%100 != 0) || (entero%400 == 0)) //verificacion de año biciesto
 							biciesto = 1; //año biciesto
 					}
@@ -203,21 +203,21 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 						entero = (string[53]-'0')*10 + (string[54]-'0'); //asignar el mes a entero
 		
 						if(entero > 12 || entero < 1)
-							return -12;
+							return INVALID_MONTH;
 			
 						if((entero == 1) || (entero == 3) || (entero == 5) || (entero == 7) || (entero == 8) || (entero == 10) || (entero ==12)) // si el mes tiene 31 dias
 						{
 							entero = (string[55]-'0')*10 + (string[56]-'0'); //asignar el mes a entero
 
 							if((entero < 1) || (entero > 31))
-								return -13;
+								return INVALID_DAY;
 						}
 						else if((entero == 4) || (entero == 6) || (entero == 9) || (entero == 11)) //si el mes tiene 30 dias
 						{	
 							entero = (string[55]-'0')*10 + (string[56]-'0'); //asignar el mes a entero
 	
 							if((entero < 1) || (entero > 30))
-								return -14;
+								return INVALID_DAY;
 						}
 						else if(biciesto == 0) //si es febrero y el año NO es biciesto
 						{
@@ -230,7 +230,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 						{
 							entero = (string[55]-'0')*10 + (string[56]-'0'); //asignar el mes a entero
 							if((entero < 1) || (entero > 29))
-								return -16;
+								return INVALID_DAY;
 						}
 					}		
 				}		
@@ -469,7 +469,7 @@ char col_parser (SERVICIO *servicio, char * patron,int log_fd)
 				//printf("Servicio Inexistente\n"); // CODIFICAR ERROR Y SALIR DE LA FUNCION. ERROR EN EL DIGITO FINAL DEL CODIGO DE TIPO
 				break;
 	}
-	return 0;
+	return OK;
 }
 
 char rev_parser(SERVICIO *servicio, char * patron)
@@ -492,7 +492,7 @@ char rev_parser(SERVICIO *servicio, char * patron)
 		string[contcar] = patron[index++]; //lectura del caracter
 		strcat(auxiliar, string+contcar); //concatenacion en el auxiliar
 		if((string[contcar] != '0') && contcar <= 1)
-			return -1; //CODIFICAR ERROR Y SALIR DE LA FUNCION. ERROR EN LOS DOS PRIMEROS DIGITOS DEL SERVICIO.
+			return INVALID_COD_SERV; //CODIFICAR ERROR Y SALIR DE LA FUNCION. ERROR EN LOS DOS PRIMEROS DIGITOS DEL SERVICIO.
 	}	
 	//****CONTROLAR QUE TIPO SEA UN NUMERO VALIDO DE SERVICIO***** SI NO ES VALIDO SALIR!!
 
@@ -532,7 +532,7 @@ char rev_parser(SERVICIO *servicio, char * patron)
 		{
 			entero = atoi(auxiliar); //convertir el char año a entero
 			if(entero < 2013)
-				return -2;
+				return INVALID_YEAR;
 			if((entero%4 == 0) && (entero%100 != 0) || (entero%400 == 0)) //verificacion de año biciesto
 				biciesto = 1; //año biciesto
 		}
@@ -541,43 +541,43 @@ char rev_parser(SERVICIO *servicio, char * patron)
 			entero = (string[13]-'0')*10 + (string[14]-'0'); //asignar el mes a entero
 			
 			if(entero > 12 || entero < 1)
-				return -3;			
+				return INVALID_MONTH;			
 			if((entero == 1) || (entero == 3) || (entero == 5) || (entero == 7) || (entero == 8) || (entero == 10) || (entero ==12)) // si el mes tiene 31 dias
 			{
 				entero = (string[15]-'0')*10 + (string[16]-'0'); //asignar el mes a entero
 				if((entero < 1) || (entero > 31))
-					return -4;
+					return INVALID_DAY;
 			}
 			else if((entero == 4) || (entero == 6) || (entero == 9) || (entero == 11)) //si el mes tiene 30 dias
 				{	
 					entero = (string[15]-'0')*10 + (string[16]-'0'); //asignar el mes a entero
 					if((entero < 1) || (entero > 30))
-						return -5;
+						return INVALID_DAY;
 				}
 			else if(biciesto == 0) //si es febrero y el año NO es biciesto
 				{
 					entero = (string[15]-'0')*10 + (string[16]-'0'); //asignar el mes a entero
 					if((entero < 1) || (entero > 28))
-						return -6;
+						return INVALID_DAY;
 				}
 			else //si el año es biciesto y es febrero
 			{
 				entero = (string[15]-'0')*10 + (string[16]-'0'); //asignar el mes a entero
 				if((entero < 1) || (entero > 29))
-					return -7;
+					return INVALID_DAY;
 			}
 		}		
 	}
 	
 	entero = (string[17]-'0')*10 + (string[18]-'0'); //asignar el mes a entero
 	if((entero > 24) || (entero < 1)) // verificar si la hora es valida
-		return -8;
+		return INVALID_HOUR;
 	entero = (string[19]-'0')*10 + (string[20]-'0'); //asignar el mes a entero
 	if((entero > 59) || (entero < 0)) //verificar si los minutos son validos
-		return -9;
+		return INVALID_MIN;
 	entero = (string[21]-'0')*10 + (string[22]-'0'); //asignar el mes a entero
 	if((entero > 59) || (entero < 0)) //verificar si los segundos son validos
-		return -10;
+		return INVALID_SEC;
 	
 	//asignar la fechahora del servicio
 	strcpy(servicio->fechahora, auxiliar);
@@ -599,5 +599,5 @@ char rev_parser(SERVICIO *servicio, char * patron)
 	//printf("Auxiliar:%s\n", auxiliar);
 	free(auxiliar);
 	//printf("Mensaje:%s\n", servicio->mensaje);
-	return 0;
+	return OK;
 } 
