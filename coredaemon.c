@@ -6,8 +6,10 @@
 void fin_hilo(thread_arg arg)
 {
 	close(arg.socket_descriptor);
+	pthread_mutex_lock(&lock);
 	--ready;
 	thread_del(&(arg.lista_hilo), arg.thread_index);
+	pthread_mutex_unlock(&lock);
 	return;
 }
 
@@ -45,13 +47,13 @@ int recvtimeout(int socket, char *buffer, int len, int timeout)
 void * coredaemon(void * argumento)
 {
 	thread_arg arg = *((thread_arg * ) argumento);
-	char print_buffer[512];
-	char buffer[16384];
-	char resp[16384];
-	char temp[16384];
+	char print_buffer[STR_LEN];
+	char buffer[PKG_LEN];
+	char resp[PKG_LEN];
+	char temp[PKG_LEN];
 	int len;
-	char usuario[100];
-	char clave[100];
+	char usuario[STR_LEN];
+	char clave[STR_LEN];
 	int log_fd;
 	SERVICIO serv;
 
@@ -119,7 +121,6 @@ void * coredaemon(void * argumento)
 	strcpy(clave,buffer);
 
 	// AUTENTICACIÓN
-	syslog(LOG_ERR,"user '%s' pass = '%s'\n",usuario,clave);
 	if(authentication (arg.acl, usuario, hash(clave)) != 0)
 	{
 		writelog(log_fd,"Fallo de autenticación\n");
@@ -143,7 +144,7 @@ void * coredaemon(void * argumento)
 		fin_hilo(arg);
 		return;
 	}
-	if( ( len = recvtimeout(arg.socket_descriptor, buffer, 16384,arg.timeout) ) < 0 ) 
+	if( ( len = recvtimeout(arg.socket_descriptor, buffer, PKG_LEN,arg.timeout) ) < 0 ) 
 	{
 		writelog(log_fd, "No se puede recibir\n");
 		if(len == -2)
@@ -159,14 +160,10 @@ void * coredaemon(void * argumento)
 	while( len > 0)
 	{
 		
-		//sprintf(resp,"Su mensaje fue '%s'\n$ ",buffer);
-		sprintf(temp,"[DEBUG]Hilo %2d: '%s'\n",arg.thread_index,buffer);
-		writelog(log_fd, temp);
 
 		// Motor de Inferencia
 		if(strcmp(buffer,"close") == 0)
 		{
-			//sprintf(temp,"El usuario %s ha cerrado sesión en el hilo %d\n",usuario,arg.thread_index);
 			sprintf(temp,"[%s::%s::close::Conexion terminada]\n",serv.fechahora,usuario);
 			writelog(log_fd, temp);
 			fin_hilo(arg);
@@ -179,7 +176,7 @@ void * coredaemon(void * argumento)
 			writelog(log_fd, temp);
 			if( db_module("help", serv,usuario,log_fd,resp) != 0)
 			{
-	               		writelog(log_fd,"EXPLOTO BD Intentando mostrar la ayuda\n");
+	               		writelog(log_fd,"Intentando mostrar la ayuda\n");
 			}else{
 				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         			{

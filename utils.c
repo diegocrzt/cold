@@ -2,7 +2,9 @@
 
 void writelog(int log_fd, const char * mensaje)
 {
+	pthread_mutex_lock(&lock);
 	write(log_fd, mensaje, strlen(mensaje));
+	pthread_mutex_unlock(&lock);
 	return;
 }
 

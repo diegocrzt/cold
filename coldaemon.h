@@ -75,6 +75,7 @@ typedef struct
 }SERVICIO;
 
 int ready;
+pthread_mutex_t lock;
 
 // Biblioteca de Funciones de:
 // Hash, postgres, semaforos
