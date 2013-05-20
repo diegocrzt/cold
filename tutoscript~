@@ -1,0 +1,24 @@
+
+
+1) Copiamos el scrpt a /etc/init.d/ y se le dan permisos de ejecución a todos los grupos
+Para ello ir a la carpeta donde se encuentra el script
+EJ: 	
+
+$ cd /home/elena/coldaemon
+
+luego hacer
+
+$ sudo su
+$ cp coldaemon.sh /etc/init.d/
+$ chmod +x /etc/init.d/coldaemon.sh
+$ update-rc.d coldaemon.sh defaults 80
+ 
+luego ubicarse en la carpeta donde se encuentre el archivo "cold"
+y hacer
+
+$ cp cold /bin  
+
+todo siempre como super administrador
+
+
+

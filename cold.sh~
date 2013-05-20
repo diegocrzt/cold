@@ -1,0 +1,49 @@
+#!/bin/sh
+# Script ejemplo para arranque de servicios en /etc/init.d/
+#
+if [ "$pid" = "start" ]
+then
+echo "Iniciando servicio... "
+# Aquí comando a ejecutar para arrancar el servicio
+	./cold cold.properties
+elif [ "$pid" = "stop" ]
+then
+echo "Deteniendo servicio..."
+# Aquí comando a ejecutar para detener el servicio
+	pid=$(pidof cold)
+	sudo kill -9 $pid
+#TERM (15)
+
+elif [ "$pid" = "restart" ]
+then
+echo "Reiniciando servicio..."
+# Aquí comando a ejecutar para reiniciar el servicio
+	pid=$(pidof cold)
+	
+	sudo kill -TERM $pid
+	./cold cold.properties
+	#TERM (15)
+
+
+elif [ "$pid" = "reload" ]
+then
+	echo "Recargando archivo de configuracion del servicio..."
+	# Aquí comando a ejecutar para recargar el servicio
+	pid=$(pidof cold)
+	vacio=" "
+	if ["$pid" != "$vacio"]; then 
+		sudo kill -HUP $pid
+	else 
+		echo "No se puede recargar.. el proceso no esta corriendo.."
+	fi
+	#HUP (1)
+elif [ "$pid" = "status" ]
+then
+	if [ "$pid" != "$vacio" ]
+	then
+		echo "El demonio esta activo PID= $pid"
+	else
+		echo "El demonio no esta activo.."
+	fi
+fi
+

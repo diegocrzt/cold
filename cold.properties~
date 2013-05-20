@@ -3,5 +3,5 @@ threads=9
 timeout=75
 logpath=/tmp/
 logfile=cold.log
-aclpath=/home/elena/coldaemon/
+aclpath=/coldaemon
 aclfile=cold.users.acl
