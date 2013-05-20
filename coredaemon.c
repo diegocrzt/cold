@@ -146,7 +146,7 @@ void * coredaemon(void * argumento)
 	sprintf(temp,"Se autenticó exitosamente al usuario %s\n",usuario);
 	writelog(log_fd, temp);
 
-	sprintf(resp,"Bienvenido al sistema de Cobros en Linea\n$ ");
+	sprintf(resp,"Bienvenido al sistema de Cobros en Linea\nEscriba help para ayuda\n$ ");
 	if(send(arg.socket_descriptor, resp, strlen(resp),0) == -1)
 	{
 		writelog(log_fd,"No se puede enviar\n");

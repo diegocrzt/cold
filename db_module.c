@@ -389,7 +389,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		PQclear(res);
 	
 	}else if(strcmp(operacion, "help") == 0){
-		sprintf(resp,"HELP\nComandos:\n- col <parametros> Realiza un cobro con la transaccion indicada por parametros.\n- rev <parametros> Realiza una reversa de la transaccion indicada por paramtros.\n- lastrx Consulta las ultimas transacciones hechas por el usuario.\n- close Cierra la conexion con el servidor\n");
+		sprintf(resp,"Comandos:\n- col <parametros> Realiza un cobro con la transaccion indicada por parametros.\n- rev <parametros> Realiza una reversa de la transaccion indicada por paramtros.\n- lastrx Consulta las ultimas transacciones hechas por el usuario.\n- close Cierra la conexion con el servidor\n");
 		
 	}
 	//Se cierra la conexión a la base de datos
