@@ -141,6 +141,8 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     }
 	//INICIO DE OPERACIONES EN LA BASE DE DATOS
 	if(strcmp(operacion, "col") == 0){
+		sprintf(temp,"[%s::%s::%s::Peticion de cobro]\n",serv.fechahora,usuario,operacion);
+		writelog(log_fd,temp);
 		/*
 		*	se envia serv.fecha hora a existe_factura y no serv.vencimiento
 		*	se cambia paramValues[10] por paramValues[12]
@@ -160,6 +162,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 			//SE GENERA EL MENSAJE DE RETORNO
 			sprintf(resp,"%s%s%s001Fallo el cobro\n",serv.codser,aux_numtran,serv.fechahora);
         		sprintf(temp,"insert command failed: %s", PQerrorMessage(conn));
+			
 				writelog(log_fd,temp);
         		PQclear(res);
         		exit_nicely(conn);
@@ -268,7 +271,8 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		PQclear(res);
 		}
 	}else if(strcmp(operacion, "rev") == 0){
-
+		sprintf(temp,"[%s::%s::%s::Peticion de reversa]\n",serv.fechahora,usuario,operacion);
+		writelog(log_fd,temp);
 		if(existe_trx(paramValues[9],conn,res,log_fd) == 0){
 			sprintf(temp,"Existe la transaccion\nMoviendo a pendientes\n");
 			writelog(log_fd,temp);
@@ -327,9 +331,12 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
         		PQclear(res);
         		exit_nicely(conn);
     		}
+		
     		PQclear(res);
 		}
 	}else if(strcmp(operacion, "lastrx") == 0){
+		sprintf(temp,"[%s::%s::%s::Peticion de listado]\n",serv.fechahora,usuario,operacion);
+		writelog(log_fd,temp);
 		paramValues2[0] = usuario;
 		int retorno = 0;
 		res = PQexecParams(conn, "SELECT * FROM transacciones WHERE usuario=$1;",
@@ -384,8 +391,11 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
         		exit_nicely(conn);
     		}
     		PQclear(res);
-	}else if(strcmp(operacion, "close") == 0){
+	//}else if(strcmp(operacion, "close") == 0){
+		
 	}else if(strcmp(operacion, "help") == 0){
+		sprintf(resp,"HELP\nComandos:\n- col <parametros> Realiza un cobro con la transaccion indicada por parametros.\n- rev <parametros> Realiza una reversa de la transaccion indicada por paramtros.\n- lastrx Consulta las ultimas transacciones hechas por el usuario.\n- close Cierra la conexion con el servidor\n");
+		
 	}
 	//Se cierra la conexión a la base de datos
     PQfinish(conn);

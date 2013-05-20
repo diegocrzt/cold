@@ -164,17 +164,30 @@ void * coredaemon(void * argumento)
 		writelog(log_fd, temp);
 
 		// Motor de Inferencia
-		if(strcmp(buffer,"exit") == 0)
+		if(strcmp(buffer,"close") == 0)
 		{
-			sprintf(temp,"El usuario %s ha cerrado sesión en el hilo %d\n",usuario,arg.thread_index);
+			//sprintf(temp,"El usuario %s ha cerrado sesión en el hilo %d\n",usuario,arg.thread_index);
+			sprintf(temp,"[%s::%s::close::Conexion terminada]\n",serv.fechahora,usuario);
 			writelog(log_fd, temp);
 			fin_hilo(arg);
 			return;
 		}
 		if(strcmp(buffer,"help") == 0)
 		{
-			sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
+			//sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
+			sprintf(temp,"[%s::%s::help::Ayuda]\n",serv.fechahora,usuario);
 			writelog(log_fd, temp);
+			if( db_module("help", serv,usuario,log_fd,resp) != 0)
+			{
+	               		writelog(log_fd,"EXPLOTO BD Intentando mostrar la ayuda\n");
+			}else{
+				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
+        			{
+                			writelog(log_fd,"No se puede enviar\n");
+					fin_hilo(arg);
+					return;
+        			}
+			}
 		}
 		if(strcmp(buffer,"lastrx") == 0)
 		{
