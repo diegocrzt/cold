@@ -1,5 +1,5 @@
-cold: coldaemon.o config_parser.o coredaemon.o utils.o transa_parser.o db_module.o coldaemon.h
-	cc coldaemon.o config_parser.o coredaemon.o transa_parser.o utils.o db_module.o -o cold -lpthread -lpq
+cold: coldaemon.o config_parser.o coredaemon.o utils.o transa_parser.o db_module.o thread_manager.o config_module.o coldaemon.h
+	cc coldaemon.o config_parser.o coredaemon.o transa_parser.o utils.o db_module.o thread_manager.o config_module.o -o cold -lpthread -lpq
 
 coldaemon.o: coldaemon.c coldaemon.h
 	cc -c coldaemon.c -o coldaemon.o
@@ -18,6 +18,12 @@ utils.o: utils.c coldaemon.h
 
 db_module.o: db_module.c coldaemon.h
 	cc -c db_module.c -o db_module.o	
+
+thread_manager.o: thread_manager.c coldaemon.h
+	cc -c thread_manager.c -o thread_manager.o
+
+config_module.o: config_module.c coldaemon.h
+	cc -c config_module.c -o config_module.o
 
 .PHONY: clean
 

@@ -1,7 +1,0 @@
-port=1234
-threads=9
-timeout=75
-logpath=/tmp/
-logfile=cold.log
-aclpath=/coldaemon
-aclfile=cold.users.acl
