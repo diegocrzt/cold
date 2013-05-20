@@ -99,6 +99,7 @@ void * coredaemon(void * argumento)
 	{
 		writelog(log_fd, "Conexión abortada\n");
 		fin_hilo(arg);
+		return;
 	}
 	strcpy(usuario,buffer);
 
@@ -195,7 +196,7 @@ void * coredaemon(void * argumento)
 		}
 		if(strcmp(buffer,"lastrx") == 0)
 		{
-			sprintf(temp,"IMPRIMIR LAS ÚLTIMAS 3 TRANSACCIONES\n");
+			sprintf(temp,"Imprimir las 3 últimas transacciones\n");
 			writelog(log_fd, temp);
 			if( db_module("lastrx", serv,usuario,log_fd,resp) != 0)
 			{

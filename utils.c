@@ -98,6 +98,7 @@ char authentication (char * acl_file, char * user, uint32_t  pass_buscado)
 {
        char user1[50];
        char *pass_file;
+	int x = 0;
        uint32_t pass1=0;
 		FILE * acl; 
 
@@ -113,7 +114,7 @@ char authentication (char * acl_file, char * user, uint32_t  pass_buscado)
                pass_file=(strpbrk(user1, ":")+2);//extrae lo que encuentra depues de '::' pass
                pass1 = atoi(pass_file);//convierte el pass string leido de archivo a long
   
-               while (memcmp(user1,user,strlen(user))!=0 && pass1!=pass_buscado && !feof(acl))
+               while (memcmp(user1,user,x)!=0 && pass1!=pass_buscado && !feof(acl))
                {/*si el usuario y la contrasenha no son iguales, y no es fin de archivo leer la siguiente linea del archivo acl*/
                      fscanf(acl, "%s", user1);
                      pass_file=(strpbrk(user1, ":")+2);//extrae de la linea user::pass lo que esta despues del :: "pass"
@@ -124,7 +125,7 @@ Compara los primeros n caracteres del objeto apuntado por s1 (interpretado como
 unsigned char) con los primeros n caracteres del objeto apuntado por s2 (interpretado
 como unsigned char).Devuelve 0 en caso que sean iguales*/
 
-               if(pass_buscado==pass1 && memcmp(user1,user,strlen(user))==0)
+               if(pass_buscado==pass1 && memcmp(user1,user,x)==0)
                {/*verifica si la variable registrada el final de recorrer la lista de archivos es igual al usuario y contrasenha buscados para la autenticacion*/
                         printf("Usuario # %s # Valido\n", user);
 			return 0;
