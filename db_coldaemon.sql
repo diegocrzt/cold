@@ -4,7 +4,7 @@ CREATE TABLE pagadas(cod_serv INTEGER, tipo INTEGER, compr BIGINT, monto BIGINT,
 
 CREATE TABLE pendientes(cod_serv INTEGER,tipo INTEGER,compr BIGINT,monto BIGINT,dig_verif INTEGER,prefijo INTEGER,numero INTEGER ,medidor BIGINT, abonado BIGINT, id INTEGER,vencimiento BIGINT);
 
-CREATE TABLE transacciones(operacion TEXT, cod_serv INTEGER, fecha_hora BIGINT, usuario TEXT, mensaje TEXT,tipo INTEGER, compr BIGINT, monto BIGINT, dig_verif INTEGER, prefijo INTEGER, numero INTEGER, medidor BIGINT, abonado BIGINT, transaccion INTEGER);
+CREATE TABLE transacciones(operacion TEXT, cod_serv INTEGER, fecha_hora TEXT, usuario TEXT, mensaje TEXT,tipo INTEGER, compr BIGINT, monto BIGINT, dig_verif INTEGER, prefijo INTEGER, numero INTEGER, medidor BIGINT, abonado BIGINT, transaccion INTEGER);
 
 
 INSERT INTO pendientes VALUES (001,001,12345678912,000000100000,7,0,0,0,0,1,20131212235959);
