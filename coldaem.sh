@@ -6,7 +6,7 @@ case "$1" in
 start)
 echo "Iniciando servicio... "
 # Aquí comando a ejecutar para arrancar el servicio
-	./cold cold.properties
+	cold /home/elena/coldaemon/cold.properties
 ;;
 stop)
 # Aquí comando a ejecutar para detener el servicio
@@ -28,7 +28,7 @@ echo "Reiniciando servicio..."
 		echo "No se puede reiniciar el servicio, el demonio no esta corriendo"	
 	else
 		sudo kill -TERM $pid
-		./cold cold.properties
+		cold /home/elena/coldaemon/cold.properties
 	fi
 #TERM (15)
 
