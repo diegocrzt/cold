@@ -96,7 +96,8 @@ unsigned long hash( char * str)
 /*recibe el puntero al archivo, el puntero al usuario y contrasenha a verificar*/
 char authentication (char * acl_file, char * user, unsigned long  pass_buscado)
 {
-       char user1[50];
+       char user1[50] = {'\0'};
+	char *tokenPtr;
        char *pass_file;
        uint32_t pass1=0;
 		FILE * acl; 
@@ -123,8 +124,8 @@ char authentication (char * acl_file, char * user, unsigned long  pass_buscado)
 Compara los primeros n caracteres del objeto apuntado por s1 (interpretado como
 unsigned char) con los primeros n caracteres del objeto apuntado por s2 (interpretado
 como unsigned char).Devuelve 0 en caso que sean iguales*/
-
-               if(pass_buscado==pass1 && memcmp(user1,user,strlen(user))==0)
+		tokenPtr= strtok(user1,"::");
+               if((pass_buscado==pass1 && strcmp(tokenPtr,user)) == 0)
                {/*verifica si la variable registrada el final de recorrer la lista de archivos es igual al usuario y contrasenha buscados para la autenticacion*/
                         printf("Usuario # %s # Valido\n", user);
 			return 0;
