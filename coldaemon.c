@@ -48,7 +48,6 @@ int main(int argc, char * argv[])
 	}
 	if(pid > 0)
 	{
-		syslog(LOG_DEBUG,"Terminando el proceso padre, proceso huerfano creado\n");
 		return OK;
 	}
 
@@ -100,7 +99,6 @@ int main(int argc, char * argv[])
 				syslog(LOG_ERR,"No se puede obtener un descriptor de socket\n");
 				exit(SOCK_DESCRIPTOR_ERROR);
 			}
-			syslog(LOG_INFO,"Socket CREADO tcp(%d)\n",socket_descriptor);
 
 			argumento.socket_descriptor = socket_descriptor;
 			pthread_create(&manager,NULL, thread_manager, (void *) &argumento); 
@@ -119,11 +117,11 @@ int main(int argc, char * argv[])
 			syslog(LOG_INFO,"Recargando fichero de configuración");
 			if( (ret = config_module(config_file, &argumento)) != 0)
 			{
-				syslog(LOG_ERR,"Error con los parámetros de configuración config_module\n",ret);
+				syslog(LOG_ERR,"Error con los parámetros de configuración config_module (%d)\n",ret);
 				return CONFIG_ERROR;
 			}
 			pthread_cancel(manager);
-			syslog(LOG_INFO,"Socket cerrado tcp(%d)\n",socket_descriptor);
+			//syslog(LOG_INFO,"Socket cerrado tcp(%d)\n",socket_descriptor);
 			/*
 			if( shutdown(socket_descriptor, 2) == -1)
 			{
@@ -145,8 +143,10 @@ int main(int argc, char * argv[])
 				Parar el demonio
 			*/
 			closelog();
+			close(argumento.socket_descriptor);
 			/* Desbloquea SIGHUP */
 			sigprocmask(SIG_UNBLOCK, &sigset, NULL);
+			return OK;
 		}
 		sleep(1);
 	}

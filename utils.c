@@ -10,10 +10,8 @@ void writelog(int log_fd, const char * mensaje)
 
 void thread_add(struct thread_list **lista, int index)
 {
-	syslog(LOG_ERR,"Añadir un thread a la lista");
 	if(*lista == NULL)
 	{
-		syslog(LOG_ERR,"Lista vacía añadiendo hilo %d\n",index);
 		
 		*lista = (struct thread_list *)malloc(sizeof(struct thread_list));
 		(*lista)->thread_index = index;
@@ -34,10 +32,9 @@ void thread_add(struct thread_list **lista, int index)
 
 pthread_t * thread_get(struct thread_list *lista, int index)
 {
-	syslog(LOG_DEBUG,"Obteniendo un pthread_t para el hilo %d",index);
 	if(lista == NULL)
 	{
-		syslog(LOG_ERR,"[CRITICAL ERROR]thread_list llega nulo!\n");
+		//syslog(LOG_ERR,"[CRITICAL ERROR]thread_list llega nulo!\n");
 		exit(NULL_THREAD);
 	}
 	do
@@ -48,7 +45,7 @@ pthread_t * thread_get(struct thread_list *lista, int index)
 		}
 	}while(lista->siguiente != NULL && (lista = lista->siguiente) );
 
-	syslog(LOG_ERR,"No existe el hilo buscado");
+	//syslog(LOG_ERR,"No existe el hilo buscado");
 	return NULL;
 }
 
@@ -58,7 +55,7 @@ void thread_del(struct thread_list **lista, int index)
 	struct thread_list * anterior = NULL;
 	if(*lista == NULL)
 	{
-		syslog(LOG_ERR,"No se pueden borrar los hilos");
+		//syslog(LOG_ERR,"No se pueden borrar los hilos");
 		exit(NULL_THREAD);
 	}
 	do{
@@ -76,8 +73,8 @@ void thread_del(struct thread_list **lista, int index)
 			return;
 		}
 		anterior = temp;
-	}while(temp->siguiente != NULL && (temp = temp->siguiente)); // ACA ME QUEDÉ!
+	}while(temp->siguiente != NULL && (temp = temp->siguiente));
 	
-	syslog(LOG_ERR,"No hay hilos ejecutandose\n");
+	//syslog(LOG_ERR,"No hay hilos ejecutandose\n");
 	return;
 }

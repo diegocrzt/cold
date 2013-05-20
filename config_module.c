@@ -39,7 +39,7 @@ char config_module(char * config_file, thread_arg * argumento)
         close(temp_fd);
 
 	// Just for debugging purposes 
-	dbg_print_thread_arg(argumento);
+	//dbg_print_thread_arg(argumento);
 
 	return OK;
 }

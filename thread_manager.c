@@ -19,7 +19,6 @@ void * thread_manager(void * argumento)
 	int ret;
 	thread_arg * arg_for_thread = NULL;
 
-	syslog(LOG_DEBUG,"Abriendo el fichero %s para bitácora\n", log);
 	if( (log_fd = open(log, O_CREAT | O_WRONLY | O_APPEND, 0666)) < 0 )
 	{ 
 		syslog(LOG_ERR,"No se puede abrir el fichero %s (%d)\n",log, log_fd);
@@ -56,14 +55,14 @@ void * thread_manager(void * argumento)
 			syslog(LOG_ERR,"No se puede aceptar la conexión\n");
 			exit(ACCEPT_CONNECTION_ERROR);
 		}
-		strcpy(printBuffer,"Conexión Entrante\n");
-		writelog(log_fd, printBuffer);
+		//strcpy(printBuffer,"Conexión Entrante\n");
+		//writelog(log_fd, printBuffer);
 
 		// Asignar argumentos y ejecutar hilos
 		if( ready <  arg.threads )
 		{
 			ready++;
-			syslog(LOG_DEBUG,"Ejecutando el hilo %d\n",ready);
+			//syslog(LOG_DEBUG,"Ejecutando el hilo %d\n",ready);
 			arg_for_thread = (thread_arg *)malloc(sizeof(thread_arg));
 
 			*arg_for_thread = arg;
@@ -75,8 +74,8 @@ void * thread_manager(void * argumento)
 			thread_add(&(arg_for_thread->lista_hilo), ready);
 			create_thread_value = pthread_create(thread_get(arg_for_thread->lista_hilo,ready),NULL, coredaemon, (void *) arg_for_thread); 
 
-			syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
-			syslog(LOG_DEBUG,"Usando Hilo %d\n",ready);
+			//syslog(LOG_DEBUG,"create_thread_value = %d\n",create_thread_value);
+			//syslog(LOG_DEBUG,"Usando Hilo %d\n",ready);
 		}else{
 			// Rechazar la conexión
 			sprintf(printBuffer,"El servidor no acepta más conexiones en este momento\nPor favor aguarde un momento y reintente conectarse nuevamente\n");
