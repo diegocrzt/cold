@@ -125,7 +125,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramRev[13]=aux_numtran;
 	sprintf(temp,"ENTRO A db_module\n");
 	writelog(log_fd,temp);
-	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %s\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\nmensaje al entrar: %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento,serv.mensaje);
+	sprintf(temp,"prefijo al entrar: %s\nnumero al entrar: %s\ncomprobante al entrar: %s\nabonado al entrar: %s\nmedidor al entrar: %s\nfecha al entrar: %s\nvencimiento al entrar (no utilizado): %s\nmensaje al entrar: %s\noperacion: %s\n", serv.prefijo,serv.numero,serv.comprobante,serv.abonado,serv.nummed,serv.fechahora,serv.vencimiento,serv.mensaje,operacion);
 	writelog(log_fd,temp);
 	
 	// Se realiza la conexión a la base de datos
