@@ -44,6 +44,16 @@ int recvtimeout(int socket, char *buffer, int len, int timeout)
 
 void * coredaemon(void * argumento)
 {
+	time_t current_time;
+    char* c_time_string;
+ 
+    /* Obtain current time as seconds elapsed since the Epoch. */
+    current_time = time(NULL);
+ 
+    /* Convert to local time format. */
+    c_time_string = ctime(&current_time);
+
+
 	thread_arg arg = *((thread_arg * ) argumento);
 	char print_buffer[512];
 	char buffer[16384];
@@ -165,7 +175,7 @@ void * coredaemon(void * argumento)
 		if(strcmp(buffer,"close") == 0)
 		{
 			//sprintf(temp,"El usuario %s ha cerrado sesión en el hilo %d\n",usuario,arg.thread_index);
-			sprintf(temp,"[%s::%s::close::Conexion terminada]\n",serv.fechahora,usuario);
+			sprintf(temp,"[%s::%s::close::Conexion terminada]\n",c_time_string,usuario);
 			writelog(log_fd, temp);
 			fin_hilo(arg);
 			return;
@@ -173,7 +183,7 @@ void * coredaemon(void * argumento)
 		if(strcmp(buffer,"help") == 0)
 		{
 			//sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
-			sprintf(temp,"[%s::%s::help::Ayuda]\n",serv.fechahora,usuario);
+			sprintf(temp,"[%s::%s::help::Ayuda]\n",c_time_string,usuario);
 			writelog(log_fd, temp);
 			if( db_module("help", serv,usuario,log_fd,resp) != 0)
 			{

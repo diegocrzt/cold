@@ -63,6 +63,15 @@ int existe_trx(const char * transaccion, PGconn * conn, PGresult * res, int log_
 
 int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char * resp)
 {
+	time_t current_time;
+    char* c_time_string;
+ 
+    /* Obtain current time as seconds elapsed since the Epoch. */
+    current_time = time(NULL);
+ 
+    /* Convert to local time format. */
+    c_time_string = ctime(&current_time);
+ 
 	char temp[512] = {0};
 	const char 	*conninfo;  
 	PGconn     	*conn;
@@ -271,7 +280,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		PQclear(res);
 		}
 	}else if(strcmp(operacion, "rev") == 0){
-		sprintf(temp,"[%s::%s::%s::Peticion de reversa]\n",serv.fechahora,usuario,operacion);
+		sprintf(temp,"[%s::%s::%s::Peticion de reversa]\n",c_time_string,usuario,operacion);
 		writelog(log_fd,temp);
 		if(existe_trx(paramValues[9],conn,res,log_fd) == 0){
 			sprintf(temp,"Existe la transaccion\nMoviendo a pendientes\n");
@@ -335,7 +344,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		PQclear(res);
 		}
 	}else if(strcmp(operacion, "lastrx") == 0){
-		sprintf(temp,"[%s::%s::%s::Peticion de listado]\n",serv.fechahora,usuario,operacion);
+		sprintf(temp,"[%s::%s::%s::Peticion de listado]\n",c_time_string,usuario,operacion);
 		writelog(log_fd,temp);
 		paramValues2[0] = usuario;
 		int retorno = 0;
