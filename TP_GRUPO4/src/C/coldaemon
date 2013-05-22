@@ -26,6 +26,7 @@ restart)
 	else
 		echo "Reiniciando servicio..."
 		kill -TERM $pid
+		sleep 3
 		cold /etc/cold.properties
 	fi
 #TERM (15)

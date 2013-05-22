@@ -109,14 +109,12 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[9] = aux_numtran;
 	paramValues[10] = serv.fechahora;
 	paramValues[11] = usuario;
-	paramValues[12] = "20131212235959";
+	//paramValues[12] = "20131212235959";
 	paramValues[13] = operacion;
 	paramValues[14] = serv.mensaje;
-	/*
 	strcpy(aux_venc,serv.vencimiento);
 	strcat(aux_venc,"235959");
 	paramValues[12] = aux_venc;
-	*/
 	paramRev[0]=operacion;
 	paramRev[1]=serv.codser;
 	paramRev[2]=serv.fechahora;
@@ -124,7 +122,8 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramRev[4]=serv.mensaje;
 	paramRev[5]=serv.tipofact;
 	paramRev[6]=serv.comprobante;
-	paramRev[7]=aux_monto; paramRev[8]=aux_verificador;
+	paramRev[7]=aux_monto;
+	paramRev[8]=aux_verificador;
 	paramRev[9]=serv.prefijo;
 	paramRev[10]=serv.numero;
 	paramRev[11]=serv.nummed;

@@ -17,5 +17,5 @@ Implementar
 + Desconexión por TimeOut(Diego)
 + config_parser Agregar los parámetros para el archivo ACL(Nico)
 + lastrx, debe devolver una cadena al usuario de alguna manera(Ariel)
-- Los códigos de error(Diego)
-- Loggear apropiadamente(Diego)
++ Los códigos de error(Diego)
++ Loggear apropiadamente(Diego)
