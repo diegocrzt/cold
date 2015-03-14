@@ -136,3 +136,12 @@ como unsigned char).Devuelve 0 en caso que sean iguales*/
                    
 }//fin autenticacion
 
+void limpiar_linea(char * cadena)
+{
+	int i=0;
+	while(cadena[i] != '\n')
+	{
+		++i;	
+	}
+	cadena[i] = '\0';
+}

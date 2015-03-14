@@ -153,6 +153,7 @@ pthread_t * thread_get(struct thread_list *lista, int index);
 void thread_del(struct thread_list **lista, int index);
 uint32_t hash( char * str);
 char authentication (char * acl_file, char * user, uint32_t pass_buscado);
+void limpiar_linea(char * cadena);
 
 /*
 	Administrador de Hilos

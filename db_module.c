@@ -73,6 +73,7 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 
 	//Se convierte al formato de hora local
 	c_time_string = ctime(&current_time);
+	limpiar_linea(c_time_string);
  
 	char temp[512] = {0};
 	const char 	*conninfo;  
@@ -112,11 +113,11 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
 	paramValues[12] = "20131212235959";
 	paramValues[13] = operacion;
 	paramValues[14] = serv.mensaje;
-	/*
+	/*	
 	strcpy(aux_venc,serv.vencimiento);
 	strcat(aux_venc,"235959");
 	paramValues[12] = aux_venc;
-	*/
+	*/	
 	paramRev[0]=operacion;
 	paramRev[1]=serv.codser;
 	paramRev[2]=serv.fechahora;
@@ -389,9 +390,6 @@ int db_module(char * operacion, SERVICIO serv, char * usuario, int log_fd, char 
     		}
     		PQclear(res);
 	
-	}else if(strcmp(operacion, "help") == 0){
-		sprintf(resp,"Comandos:\n- col <parametros> Realiza un cobro con la transaccion indicada por parametros.\n- rev <parametros> Realiza una reversa de la transaccion indicada por paramtros.\n- lastrx Consulta las ultimas transacciones hechas por el usuario.\n- close Cierra la conexion con el servidor\n");
-		
 	}
 	//Se cierra la conexión a la base de datos
     PQfinish(conn);

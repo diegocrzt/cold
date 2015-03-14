@@ -29,6 +29,7 @@ config_module.o: config_module.c coldaemon.h
 
 clean:
 	rm -rf cold *.o
+	rm cold 
 
 install:
 	install cold /bin/cold

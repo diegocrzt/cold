@@ -53,6 +53,7 @@ void * coredaemon(void * argumento)
  
     /* Convert to local time format. */
     c_time_string = ctime(&current_time);
+	limpiar_linea(c_time_string);
 
 
 	thread_arg arg = *((thread_arg * ) argumento);
@@ -182,17 +183,14 @@ void * coredaemon(void * argumento)
 			//sprintf(temp,"IMPRIMIR LA AYUDA EN PANTALLA\n");
 			sprintf(temp,"[%s::%s::help::Ayuda]\n",c_time_string,usuario);
 			writelog(log_fd, temp);
-			if( db_module("help", serv,usuario,log_fd,resp) != 0)
-			{
-	               		writelog(log_fd,"Intentando mostrar la ayuda\n");
-			}else{
-				if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
-        			{
-                			writelog(log_fd,"No se puede enviar\n");
-					fin_hilo(arg);
-					return;
-        			}
-			}
+			sprintf(resp,"Comandos:\n- col <parametros> Realiza un cobro con la transaccion indicada por parametros.\n- rev <parametros> Realiza una reversa de la transaccion indicada por paramtros.\n- lastrx Consulta las ultimas transacciones hechas por el usuario.\n- close Cierra la conexion con el servidor\n");	
+			if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
+        		{
+                		writelog(log_fd,"No se puede enviar\n");
+				fin_hilo(arg);
+				return;
+        		}
+			//}
 		}
 		if(strcmp(buffer,"lastrx") == 0)
 		{
@@ -223,37 +221,37 @@ void * coredaemon(void * argumento)
 				case 30:
 					sprintf(temp,"INVALID_COD_SERV\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Codigo de servicio invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Codigo de servicio invalido. Verifique y reintente\n");
 					break;
 				case 31:
 					sprintf(temp,"INVALID_YEAR\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Año invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Año invalido. Verifique y reintente\n");
 					break;
 				case 32:
 					sprintf(temp,"INVALID_DAY\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Dia invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Dia invalido. Verifique y reintente\n");
 					break;
 				case 33:
 					sprintf(temp,"INVALID_MONTH\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Mes invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Mes invalido. Verifique y reintente\n");
 					break;
 				case 34:
 					sprintf(temp,"INVALID_HOUR\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Hora invalida. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Hora invalida. Verifique y reintente\n");
 					break;
 				case 35:
 					sprintf(temp,"INVALID_MIN\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Minutos invalidos. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Minutos invalidos. Verifique y reintente\n");
 					break;
 				case 36:
 					sprintf(temp,"INVALID_SEC\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Segundos invalidos. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Segundos invalidos. Verifique y reintente\n");
 					break;
 				}
 
@@ -287,37 +285,37 @@ void * coredaemon(void * argumento)
 				case 30:
 					sprintf(temp,"INVALID_COD_SERV\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Codigo de servicio invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Codigo de servicio invalido. Verifique y reintente\n");
 					break;
 				case 31:
 					sprintf(temp,"INVALID_YEAR\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Año invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Año invalido. Verifique y reintente\n");
 					break;
 				case 32:
 					sprintf(temp,"INVALID_DAY\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Dia invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Dia invalido. Verifique y reintente\n");
 					break;
 				case 33:
 					sprintf(temp,"INVALID_MONTH\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Mes invalido. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Mes invalido. Verifique y reintente\n");
 					break;
 				case 34:
 					sprintf(temp,"INVALID_HOUR\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Hora invalida. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Hora invalida. Verifique y reintente\n");
 					break;
 				case 35:
 					sprintf(temp,"INVALID_MIN\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Minutos invalidos. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Minutos invalidos. Verifique y reintente\n");
 					break;
 				case 36:
 					sprintf(temp,"INVALID_SEC\n");
 					writelog(log_fd, temp);
-					sprintf(resp,"ERROR: Segundos invalidos. Verifique y reintente\n$ ");
+					sprintf(resp,"ERROR: Segundos invalidos. Verifique y reintente\n");
 					break;
 				}
 				
@@ -339,7 +337,7 @@ void * coredaemon(void * argumento)
         			}
 			}
 		}
-
+		
 		sprintf(resp,"$ ");
 		if(send(arg.socket_descriptor, resp,strlen(resp),0) == -1)
         	{
